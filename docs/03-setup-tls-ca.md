@@ -309,12 +309,9 @@ identity/
 now, let's use this to register another identity for orderer01 and peer01
 ```
 fabric-ca-client register -d --id.name orderer0@payments --id.secret orderer0-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-
 fabric-ca-client register -d --id.name orderer1@payments --id.secret orderer1-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-
 fabric-ca-client register -d --id.name orderer2@payments --id.secret orderer2-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
 
 fabric-ca-client register -d --id.name peer0@payments --id.secret peer0-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-
 fabric-ca-client register -d --id.name peer1@payments --id.secret peer0-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
 ```

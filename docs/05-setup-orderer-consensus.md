@@ -33,7 +33,6 @@ mkdir -p certificates/etcd/peer
 get certificate from TLS fabric CA server
 ```shell
 fabric-ca-client enroll -d -u https://orderer0@payments:orderer0-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.20' --mspdir ${HOME}/certificates/etcd/client
-
 fabric-ca-client enroll -d -u https://orderer0@payments:orderer0-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --mspdir ${HOME}/certificates/etcd/peer
 ```
 
@@ -129,7 +128,6 @@ mkdir -p certificates/etcd/peer
 get certificate from TLS fabric CA server
 ```shell
 fabric-ca-client enroll -d -u https://orderer1@payments:orderer1-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.21' --mspdir ${HOME}/certificates/etcd/client
-
 fabric-ca-client enroll -d -u https://orderer1@payments:orderer1-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --mspdir ${HOME}/certificates/etcd/peer
 ```
 
@@ -225,7 +223,6 @@ mkdir -p certificates/etcd/peer
 get certificate from TLS fabric CA server
 ```shell
 fabric-ca-client enroll -d -u https://orderer2@payments:orderer2-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.22' --mspdir ${HOME}/certificates/etcd/client
-
 fabric-ca-client enroll -d -u https://orderer2@payments:orderer2-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --mspdir ${HOME}/certificates/etcd/peer
 ```
 

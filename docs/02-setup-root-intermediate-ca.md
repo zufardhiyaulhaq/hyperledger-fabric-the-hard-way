@@ -47,19 +47,15 @@ we need to create client for TLS CA, this client certificate will be used to con
 
 create client certificate directory
 ```shell
-mkdir -p certificates/tls/client/admin/
 mkdir -p certificates/tls/client/tls-service/
 mkdir -p certificates/tls/client/enrollment-service/
 ```
 
 ```shell
-step certificate create admin-ledger-tls-payments-ca certificates/tls/client/admin/admin.crt certificates/tls/client/admin/admin.key --profile leaf --ca certificates/tls/intermediate/ca.crt --ca-key certificates/tls/intermediate/ca.key --kty EC --no-password --insecure --not-after 47600h --san admin.ledger.tls.payments
-step certificate bundle certificates/tls/client/admin/admin.crt certificates/tls/intermediate/ca.crt certificates/tls/client/admin/fullchain.crt
+step certificate create tls-service-ledger-tls-payments-ca certificates/tls/client/tls-service/tls.crt certificates/tls/client/tls-service/tls.key --profile leaf --ca certificates/tls/intermediate/ca.crt --ca-key certificates/tls/intermediate/ca.key --kty EC --no-password --insecure --not-after 47600h --san tls-service.ledger.tls.payments --san 10.250.250.10 --san localhost --san 127.0.0.1
+step certificate bundle certificates/tls/client/tls-service/tls.crt certificates/tls/intermediate/ca.crt certificates/tls/client/tls-service/fullchain.crt
 
-step certificate create tls-service-ledger-tls-payments-ca certificates/tls/client/tls-service/tls.crt certificates/tls/client/tls-service/tls.key --profile leaf --ca certificates/tls/intermediate/ca.crt --ca-key certificates/tls/intermediate/ca.key --kty EC --no-password --insecure --not-after 47600h --san tls-service.ledger.tls.payments
-step certificate bundle certificates/tls/client/tls-service/cert.pem certificates/tls/intermediate/ca.crt certificates/tls/client/tls-service/fullchain.crt
-
-step certificate create enrollment-service-ledger-tls-payments-ca certificates/tls/client/enrollment-service/enrollment.crt certificates/tls/client/enrollment-service/enrollment.key --profile leaf --ca certificates/tls/intermediate/ca.crt --ca-key certificates/tls/intermediate/ca.key --kty EC --no-password --insecure --not-after 47600h --san enrollment-service.ledger.tls.payments
+step certificate create enrollment-service-ledger-tls-payments-ca certificates/tls/client/enrollment-service/enrollment.crt certificates/tls/client/enrollment-service/enrollment.key --profile leaf --ca certificates/tls/intermediate/ca.crt --ca-key certificates/tls/intermediate/ca.key --kty EC --no-password --insecure --not-after 47600h --san enrollment-service.ledger.tls.payments --san 10.250.250.10 --san localhost --san 127.0.0.1
 step certificate bundle certificates/tls/client/enrollment-service/enrollment.crt certificates/tls/intermediate/ca.crt certificates/tls/client/enrollment-service/fullchain.crt
 ```
 
@@ -77,15 +73,12 @@ certificates/
 │       └── root.key
 └── tls
     ├── client
-    │   ├── admin
-    │   │   ├── admin.crt
-    │   │   ├── admin.key
-    │   │   └── fullchain.crt
     │   ├── enrollment-service
     │   │   ├── enrollment.crt
     │   │   ├── enrollment.key
     │   │   └── fullchain.crt
     │   └── tls-service
+    │       └── fullchain.crt
     │       ├── tls.crt
     │       └── tls.key
     ├── intermediate

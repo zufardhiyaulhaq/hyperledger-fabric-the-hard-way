@@ -19,7 +19,8 @@ vagrant status
 
 Current machine states:
 
-payments-ca-server-0 running (virtualbox)
+payments-ca-server-0      running (virtualbox)
+payments-orderer-0        running (virtualbox)
 
 This environment represents multiple VMs. The VMs are all listed
 above with their current state. For more information about a specific

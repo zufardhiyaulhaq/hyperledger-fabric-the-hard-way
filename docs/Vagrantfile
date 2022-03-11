@@ -24,4 +24,21 @@ Vagrant.configure('2') do |config|
       end
     end
   end
+
+  (0..0).each do |i|
+    config.vm.define "#{ledger_name}-orderer-#{i}" do |server|
+
+      server.vm.hostname = "#{ledger_name}-orderer-#{i}"
+      server.vm.network 'private_network', ip: "#{ledger_network}.2#{i}"
+
+      server.vm.provision 'shell', inline: $install_script
+
+      server.vm.provider 'virtualbox' do |vb|
+        vb.name = "#{ledger_name}-orderer-#{i}"
+        vb.memory = 2048
+        vb.cpus = 1
+        vb.customize ['modifyvm', :id, '--nicpromisc2', 'allow-all']
+      end
+    end
+  end
 end

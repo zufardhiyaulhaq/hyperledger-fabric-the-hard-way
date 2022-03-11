@@ -4,6 +4,11 @@ This CA generates the certificates used to secure communications on Transport La
 ### Setup Database
 for the sake of simplicity, we will deploy database on docker
 
+ssh to the nodes
+```shell
+vagrant ssh payments-ca-server-0
+```
+
 install docker & docker-compose
 ```
 sudo apt-get install \
@@ -46,6 +51,11 @@ sudo docker-compose --file docker-compose/tls/docker-compose.yaml up --build -d
 ```
 
 ### Setup Fabric CA
+ssh to the nodes
+```shell
+vagrant ssh payments-ca-server-0
+```
+
 create config directory
 ```shell
 sudo mkdir -p /etc/hyperledger/tls-fabric-ca-server
@@ -59,7 +69,6 @@ sudo cp certificates/tls/intermediate/fullchain.crt /etc/hyperledger/tls-fabric-
 sudo cp certificates/tls/client/tls-service/tls.crt /etc/hyperledger/tls-fabric-ca-server/
 sudo cp certificates/tls/client/tls-service/tls.key /etc/hyperledger/tls-fabric-ca-server/
 ```
-
 
 create TLS fabric CA configuration
 ```shell
@@ -82,8 +91,7 @@ tls:
   certfile: /etc/hyperledger/tls-fabric-ca-server/tls.crt
   keyfile: /etc/hyperledger/tls-fabric-ca-server/tls.key
   clientauth:
-    type: noclientcert
-    certfiles:
+    type: NoClientCert
 
 ca:
   name: payments
@@ -249,4 +257,58 @@ start TLS fabric CA server
 sudo systemctl enable tls-fabric-ca-server.service
 sudo systemctl start tls-fabric-ca-server.service
 sudo systemctl status tls-fabric-ca-server.service
+```
+
+### Enrolling Admin Users
+By default, TLS Fabric CA will create an admin identity
+```
+- name: tls-fabric-payments-ca-user
+  pass: tls-fabric-payments-ca-password
+```
+This admin identity is used for creating another identity for orderer and peer nodes. In order to create another identity, we need to first collect the certificate for this default identity
+
+create directory for admin identity
+```
+mkdir -p identity/tls/admin/
+mkdir -p identity/tls/admin/msp
+```
+
+copy TLS CA chain
+```
+cp certificates/tls/intermediate/fullchain.crt identity/tls/admin/
+```
+
+get admin identity certificate
+```
+fabric-ca-client enroll -d -u https://tls-fabric-payments-ca-user:tls-fabric-payments-ca-password@10.250.250.10:7054 --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --mspdir ${HOME}/identity/tls/admin/msp
+```
+
+if we check, we will find
+```
+tree identity/
+identity/
+└── tls
+    └── admin
+        ├── fullchain.crt
+        └── msp
+            ├── cacerts
+            ├── IssuerPublicKey
+            ├── IssuerRevocationPublicKey
+            ├── keystore
+            │   └── 6216c173c326b4b738ea7e41cc47db5c4a73d42a2d4335ab01ec30f3ea4c69ef_sk
+            ├── signcerts
+            │   └── cert.pem
+            ├── tlscacerts
+            │   └── tls-10-250-250-10-7054.pem
+            ├── tlsintermediatecerts
+            │   └── tls-10-250-250-10-7054.pem
+            └── user
+```
+
+### Creating Identity
+now, let's use this to register another identity for orderer01 and peer01
+```
+fabric-ca-client register -d --id.name orderer0@payments --id.secret orderer0-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
+
+fabric-ca-client register -d --id.name peer0@payments --id.secret peer0-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
 ```

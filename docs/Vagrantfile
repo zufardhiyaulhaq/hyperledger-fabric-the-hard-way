@@ -1,0 +1,33 @@
+Vagrant.configure('2') do |config|
+  config.vm.box = 'hashicorp/bionic64'
+
+  install_script = <<-'SCRIPT'
+  sudo apt update -y
+  SCRIPT
+
+  install_step_certificate_script = <<-'SCRIPT'
+  wget -O step.tar.gz https://dl.step.sm/gh-release/cli/docs-ca-install/v0.18.2/step_linux_0.18.2_amd64.tar.gz
+  tar -xf step.tar.gz
+  sudo cp step_0.18.2/bin/step /usr/bin
+  SCRIPT
+
+  ledger_network = '10.250.250'
+  ledger_name = 'payments'
+
+  (0..0).each do |i|
+    config.vm.define "#{ledger_name}-ca-server-#{i}" do |example|
+
+      example.vm.hostname = "#{ledger_name}-ca-server-#{i}"
+      example.vm.network 'private_network', ip: "#{ledger_network}.1#{i}"
+
+      deployer.vm.provision 'shell', inline: install_script
+
+      example.vm.provider 'virtualbox' do |vb|
+        vb.name = "#{ledger_name}-ca-server-#{i}"
+        vb.memory = 2048
+        vb.cpus = 1
+        vb.customize ['modifyvm', :id, '--nicpromisc2', 'allow-all']
+      end
+    end
+  end
+end

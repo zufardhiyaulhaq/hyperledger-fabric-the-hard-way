@@ -21,6 +21,10 @@ Current machine states:
 
 payments-ca-server-0      running (virtualbox)
 payments-orderer-0        running (virtualbox)
+payments-orderer-1        running (virtualbox)
+payments-orderer-2        running (virtualbox)
+payments-peer-0           running (virtualbox)
+payments-peer-1           running (virtualbox)
 
 This environment represents multiple VMs. The VMs are all listed
 above with their current state. For more information about a specific

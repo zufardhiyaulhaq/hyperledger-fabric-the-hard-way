@@ -89,3 +89,36 @@ certificates/
         ├── root.crt
         └── root.key
 ```
+
+Copy enrollment & TLS intermediate fullchain to each orderer and peer nodes
+```
+ssh vagrant@10.250.250.20 "mkdir -p ~/certificates/enrollment/intermediate"
+ssh vagrant@10.250.250.20 "mkdir -p ~/certificates/tls/intermediate"
+
+scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.250.20:~/certificates/enrollment/intermediate/
+scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.250.20:~/certificates/tls/intermediate/
+
+ssh vagrant@10.250.250.21 "mkdir -p ~/certificates/enrollment/intermediate"
+ssh vagrant@10.250.250.21 "mkdir -p ~/certificates/tls/intermediate"
+
+scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.250.21:~/certificates/enrollment/intermediate/
+scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.250.21:~/certificates/tls/intermediate/
+
+ssh vagrant@10.250.250.22 "mkdir -p ~/certificates/enrollment/intermediate"
+ssh vagrant@10.250.250.22 "mkdir -p ~/certificates/tls/intermediate"
+
+scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.250.22:~/certificates/enrollment/intermediate/
+scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.250.22:~/certificates/tls/intermediate/
+
+ssh vagrant@10.250.250.30 "mkdir -p ~/certificates/enrollment/intermediate"
+ssh vagrant@10.250.250.30 "mkdir -p ~/certificates/tls/intermediate"
+
+scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.250.30:~/certificates/enrollment/intermediate/
+scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.250.30:~/certificates/tls/intermediate/
+
+ssh vagrant@10.250.250.31 "mkdir -p ~/certificates/enrollment/intermediate"
+ssh vagrant@10.250.250.31 "mkdir -p ~/certificates/tls/intermediate"
+
+scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.250.31:~/certificates/enrollment/intermediate/
+scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.250.31:~/certificates/tls/intermediate/
+```

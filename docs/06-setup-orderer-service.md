@@ -93,16 +93,16 @@ cat <<EOF | sudo tee /etc/orderer/msp/config.yaml
 NodeOUs:
  Enable: true
  ClientOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: client
  PeerOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: peer
  AdminOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: admin
  OrdererOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: orderer
 EOF
 ```
@@ -288,16 +288,16 @@ cat <<EOF | sudo tee /etc/orderer/msp/config.yaml
 NodeOUs:
  Enable: true
  ClientOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: client
  PeerOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: peer
  AdminOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: admin
  OrdererOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: orderer
 EOF
 ```
@@ -483,16 +483,16 @@ cat <<EOF | sudo tee /etc/orderer/msp/config.yaml
 NodeOUs:
  Enable: true
  ClientOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: client
  PeerOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: peer
  AdminOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: admin
  OrdererOUIdentifier:
-   Certificate: cacerts/root-ca.pem
+   Certificate: intermediatecerts/intermediate-ca.pem
    OrganizationalUnitIdentifier: orderer
 EOF
 ```

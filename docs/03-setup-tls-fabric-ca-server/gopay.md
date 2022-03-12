@@ -304,4 +304,5 @@ identity/
 now, let's use this to register another identity for orderer
 ```
 fabric-ca-client register -d --id.name peer0@gopay --id.secret peer0-gopay-password -u https://10.250.251.10:7054  --id.type client --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
+fabric-ca-client register -d --id.name peer1@gopay --id.secret peer1-gopay-password -u https://10.250.251.10:7054  --id.type client --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
 ```

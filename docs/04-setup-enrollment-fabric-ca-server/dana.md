@@ -289,4 +289,5 @@ identity/
 now, let's use this to register another identity for peers
 ```
 fabric-ca-client register -d --id.name peer0@dana --id.secret peer0-dana-password -u https://10.250.252.10:7055  --id.type peer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name peer1@dana --id.secret peer1-dana-password -u https://10.250.252.10:7055  --id.type peer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
 ```

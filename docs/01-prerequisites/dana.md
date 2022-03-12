@@ -31,6 +31,7 @@ ssh-keygen
 
 # copy to peer
 sshpass -p "vagrant" ssh-copy-id -o StrictHostKeyChecking=no vagrant@10.250.252.20
+sshpass -p "vagrant" ssh-copy-id -o StrictHostKeyChecking=no vagrant@10.250.252.21
 ```
 
 # Peer
@@ -38,6 +39,7 @@ for each peer nodes, do this following things
 
 ```shell
 vagrant ssh dana-peer-0
+vagrant ssh dana-peer-1
 ```
 
 Install Hyperledger Fabric CA binary

@@ -97,4 +97,10 @@ ssh vagrant@10.250.251.20 "mkdir -p ~/certificates/tls/intermediate"
 
 scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.251.20:~/certificates/enrollment/intermediate/
 scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.251.20:~/certificates/tls/intermediate/
+
+ssh vagrant@10.250.251.21 "mkdir -p ~/certificates/enrollment/intermediate"
+ssh vagrant@10.250.251.21 "mkdir -p ~/certificates/tls/intermediate"
+
+scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.251.20:~/certificates/enrollment/intermediate/
+scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.251.20:~/certificates/tls/intermediate/
 ```

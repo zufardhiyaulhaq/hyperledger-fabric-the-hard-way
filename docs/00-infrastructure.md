@@ -25,8 +25,10 @@ bi-orderer-1              running (virtualbox)
 bi-orderer-2              running (virtualbox)
 gopay-ca-server-0         running (virtualbox)
 gopay-peer-0              running (virtualbox)
+gopay-peer-1              running (virtualbox)
 dana-ca-server-0          running (virtualbox)
 dana-peer-0               running (virtualbox)
+dana-peer-1               running (virtualbox)
 
 This environment represents multiple VMs. The VMs are all listed
 above with their current state. For more information about a specific

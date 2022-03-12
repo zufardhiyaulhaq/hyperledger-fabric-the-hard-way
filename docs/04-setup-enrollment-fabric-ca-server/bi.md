@@ -5,7 +5,7 @@ this CA is used to generate (through a process called “enrollment”) the cert
 ### Setup Database
 ssh to the nodes
 ```shell
-vagrant ssh payments-ca-server-0
+vagrant ssh bi-ca-server-0
 ```
 
 for the sake of simplicity, we will deploy database on docker
@@ -16,31 +16,26 @@ mkdir -p docker-compose/enrollment/
 cat <<EOF | tee docker-compose/enrollment/docker-compose.yaml
 version: "2"
 services:
-  enrollment-fabric-payments-ca-postgres:
+  enrollment-fabric-bi-ca-postgres:
     ports:
       - "5433:5432"
-    container_name: enrollment-fabric-payments-ca-postgres
+    container_name: enrollment-fabric-bi-ca-postgres
     environment:
-      POSTGRES_DB: enrollment_fabric_payments_ca
-      POSTGRES_USER: enrollment-fabric-payments-ca-user
-      POSTGRES_PASSWORD: enrollment-fabric-payments-ca-password
+      POSTGRES_DB: enrollment_fabric_bi_ca
+      POSTGRES_USER: enrollment-fabric-bi-ca-user
+      POSTGRES_PASSWORD: enrollment-fabric-bi-ca-password
     image: postgres:12-alpine
     restart: always
     volumes:
-      - enrollment-fabric-payments-ca-postgres:/var/lib/postgresql/data
+      - enrollment-fabric-bi-ca-postgres:/var/lib/postgresql/data
 volumes:
-  enrollment-fabric-payments-ca-postgres:
+  enrollment-fabric-bi-ca-postgres:
     driver: local
 EOF
 sudo docker-compose --file docker-compose/enrollment/docker-compose.yaml up --build -d 
 ```
 
 ### Setup Fabric CA
-ssh to the nodes
-```shell
-vagrant ssh payments-ca-server-0
-```
-
 create config directory
 ```shell
 sudo mkdir -p /etc/hyperledger/enrollment-fabric-ca-server
@@ -79,7 +74,7 @@ tls:
     type: NoClientCert
 
 ca:
-  name: payments
+  name: bi
   keyfile: /etc/hyperledger/enrollment-fabric-ca-server/ca.key
   certfile: /etc/hyperledger/enrollment-fabric-ca-server/ca.crt
   chainfile: /etc/hyperledger/enrollment-fabric-ca-server/fullchain.crt
@@ -92,8 +87,8 @@ registry:
   maxenrollments: -1
 
   identities:
-     - name: enrollment-fabric-payments-ca-user
-       pass: enrollment-fabric-payments-ca-password
+     - name: admin@bi
+       pass: adminpasswd
        type: client
        affiliation: ""
        attrs:
@@ -107,7 +102,7 @@ registry:
 
 db:
   type: postgres
-  datasource: host=localhost port=5433 user=enrollment-fabric-payments-ca-user password=enrollment-fabric-payments-ca-password dbname=enrollment_fabric_payments_ca sslmode=disable
+  datasource: host=localhost port=5433 user=enrollment-fabric-bi-ca-user password=enrollment-fabric-bi-ca-password dbname=enrollment_fabric_bi_ca sslmode=disable
   tls:
       enabled: false
 
@@ -145,16 +140,16 @@ signing:
          expiry: 8760h
 
 csr:
-   cn: fabric-root-ca
+   cn:
    keyrequest:
      algo: ecdsa
      size: 256
    names:
-      - C: Indonesia
-        ST: "Jakarta"
+      - C: id
+        ST: jakarta
         L:
-        O: Payments
-        OU: Emoney
+        O: bi
+        OU:
    hosts:
      - localhost
    ca:
@@ -247,8 +242,8 @@ sudo systemctl status enrollment-fabric-ca-server.service
 ### Enrolling Admin Users
 By default, Encrollment Fabric CA will create an admin identity
 ```
-- name: enrollment-fabric-payments-ca-user
-  pass: enrollment-fabric-payments-ca-password
+- name: admin@bi
+  pass: adminpasswd
 ```
 This admin identity is used for creating another identity for orderer and peer nodes. In order to create another identity, we need to first collect the certificate for this default identity
 
@@ -265,7 +260,7 @@ cp certificates/tls/intermediate/fullchain.crt identity/enrollment/admin/tls-ful
 
 get admin identity certificate
 ```
-fabric-ca-client enroll -d -u https://enrollment-fabric-payments-ca-user:enrollment-fabric-payments-ca-password@10.250.250.10:7055 --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client enroll -d -u https://admin@bi:adminpasswd@10.250.250.10:7055 --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/identity/enrollment/admin/msp
 ```
 
 if we check, we will find
@@ -273,30 +268,27 @@ if we check, we will find
 tree identity/
 identity/
 ├── enrollment
-│   └── admin
-│       ├── msp
-│       │   ├── cacerts
-│       │   ├── IssuerPublicKey
-│       │   ├── IssuerRevocationPublicKey
-│       │   ├── keystore
-│       │   │   └── e8f512a9f7839179071202a48cd023d733f8e7d8d1ec64702f73e2350aec0f75_sk
-│       │   ├── signcerts
-│       │   │   └── cert.pem
-│       │   ├── tlscacerts
-│       │   │   └── tls-10-250-250-10-7055.pem
-│       │   ├── tlsintermediatecerts
-│       │   │   └── tls-10-250-250-10-7055.pem
-│       │   └── user
-│       └── tls-fullchain.crt
+│   └── admin
+│       ├── msp
+│       │   ├── IssuerPublicKey
+│       │   ├── IssuerRevocationPublicKey
+│       │   ├── cacerts
+│       │   ├── keystore
+│       │   │   └── a8104a30f13ecfd328d042babf1230f22ebf9acb9f65e9b0f18f78c3b680ca5b_sk
+│       │   ├── signcerts
+│       │   │   └── cert.pem
+│       │   ├── tlscacerts
+│       │   │   └── tls-10-250-250-10-7055.pem
+│       │   ├── tlsintermediatecerts
+│       │   │   └── tls-10-250-250-10-7055.pem
+│       │   └── user
+│       └── tls-fullchain.crt
 ```
 
 ### Creating Identity
-now, let's use this to register another identity for orderer01 and peer01
+now, let's use this to register another identity for orderers
 ```
-fabric-ca-client register -d --id.name orderer0@payments --id.secret orderer0-payments-password -u https://10.250.250.10:7055  --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
-fabric-ca-client register -d --id.name orderer1@payments --id.secret orderer1-payments-password -u https://10.250.250.10:7055  --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
-fabric-ca-client register -d --id.name orderer2@payments --id.secret orderer2-payments-password -u https://10.250.250.10:7055  --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
-
-fabric-ca-client register -d --id.name peer0@payments --id.secret peer0-payments-password -u https://10.250.250.10:7055  --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
-fabric-ca-client register -d --id.name peer1@payments --id.secret peer1-payments-password -u https://10.250.250.10:7055  --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name orderer0@bi --id.secret orderer0-bi-password -u https://10.250.250.10:7055  --id.type orderer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name orderer1@bi --id.secret orderer1-bi-password -u https://10.250.250.10:7055  --id.type orderer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name orderer2@bi --id.secret orderer2-bi-password -u https://10.250.250.10:7055  --id.type orderer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
 ```

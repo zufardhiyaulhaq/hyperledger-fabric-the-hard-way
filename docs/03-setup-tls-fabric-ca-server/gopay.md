@@ -6,7 +6,7 @@ for the sake of simplicity, we will deploy database on docker
 
 ssh to the nodes
 ```shell
-vagrant ssh payments-ca-server-0
+vagrant ssh gopay-ca-server-0
 ```
 
 install docker & docker-compose
@@ -31,31 +31,26 @@ mkdir -p docker-compose/tls/
 cat <<EOF | tee docker-compose/tls/docker-compose.yaml
 version: "2"
 services:
-  tls-fabric-payments-ca-postgres:
+  tls-fabric-gopay-ca-postgres:
     ports:
       - "5432:5432"
-    container_name: tls-fabric-payments-ca-postgres
+    container_name: tls-fabric-gopay-ca-postgres
     environment:
-      POSTGRES_DB: tls_fabric_payments_ca
-      POSTGRES_USER: tls-fabric-payments-ca-user
-      POSTGRES_PASSWORD: tls-fabric-payments-ca-password
+      POSTGRES_DB: tls_fabric_gopay_ca
+      POSTGRES_USER: tls-fabric-gopay-ca-user
+      POSTGRES_PASSWORD: tls-fabric-gopay-ca-password
     image: postgres:12-alpine
     restart: always
     volumes:
-      - tls-fabric-payments-ca-postgres:/var/lib/postgresql/data
+      - tls-fabric-gopay-ca-postgres:/var/lib/postgresql/data
 volumes:
-  tls-fabric-payments-ca-postgres:
+  tls-fabric-gopay-ca-postgres:
     driver: local
 EOF
 sudo docker-compose --file docker-compose/tls/docker-compose.yaml up --build -d 
 ```
 
 ### Setup Fabric CA
-ssh to the nodes
-```shell
-vagrant ssh payments-ca-server-0
-```
-
 create config directory
 ```shell
 sudo mkdir -p /etc/hyperledger/tls-fabric-ca-server
@@ -94,7 +89,7 @@ tls:
     type: NoClientCert
 
 ca:
-  name: payments
+  name: gopay
   keyfile: /etc/hyperledger/tls-fabric-ca-server/ca.key
   certfile: /etc/hyperledger/tls-fabric-ca-server/ca.crt
   chainfile: /etc/hyperledger/tls-fabric-ca-server/fullchain.crt
@@ -107,8 +102,8 @@ registry:
   maxenrollments: -1
 
   identities:
-     - name: tls-fabric-payments-ca-user
-       pass: tls-fabric-payments-ca-password
+     - name: admin@gopay
+       pass: adminpasswd
        type: client
        affiliation: ""
        attrs:
@@ -122,7 +117,7 @@ registry:
 
 db:
   type: postgres
-  datasource: host=localhost port=5432 user=tls-fabric-payments-ca-user password=tls-fabric-payments-ca-password dbname=tls_fabric_payments_ca sslmode=disable
+  datasource: host=localhost port=5432 user=tls-fabric-gopay-ca-user password=tls-fabric-gopay-ca-password dbname=tls_fabric_gopay_ca sslmode=disable
   tls:
       enabled: false
 
@@ -160,16 +155,16 @@ signing:
          expiry: 8760h
 
 csr:
-   cn: fabric-root-ca
+   cn:
    keyrequest:
      algo: ecdsa
      size: 256
    names:
-      - C: Indonesia
-        ST: "Jakarta"
+      - C: id
+        ST: jakarta
         L:
-        O: Payments
-        OU: Emoney
+        O: gopay
+        OU:
    hosts:
      - localhost
    ca:
@@ -262,8 +257,8 @@ sudo systemctl status tls-fabric-ca-server.service
 ### Enrolling Admin Users
 By default, TLS Fabric CA will create an admin identity
 ```
-- name: tls-fabric-payments-ca-user
-  pass: tls-fabric-payments-ca-password
+- name: admin@gopay
+  pass: adminpasswd
 ```
 This admin identity is used for creating another identity for orderer and peer nodes. In order to create another identity, we need to first collect the certificate for this default identity
 
@@ -280,7 +275,7 @@ cp certificates/tls/intermediate/fullchain.crt identity/tls/admin/
 
 get admin identity certificate
 ```
-fabric-ca-client enroll -d -u https://tls-fabric-payments-ca-user:tls-fabric-payments-ca-password@10.250.250.10:7054 --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --mspdir ${HOME}/identity/tls/admin/msp
+fabric-ca-client enroll -d -u https://admin@gopay:adminpasswd@10.250.251.10:7054 --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --csr.names C=id,O=gopay,ST=jakarta --mspdir ${HOME}/identity/tls/admin/msp
 ```
 
 if we check, we will find
@@ -299,19 +294,14 @@ identity/
             ├── signcerts
             │   └── cert.pem
             ├── tlscacerts
-            │   └── tls-10-250-250-10-7054.pem
+            │   └── tls-10.250.251-10-7054.pem
             ├── tlsintermediatecerts
-            │   └── tls-10-250-250-10-7054.pem
+            │   └── tls-10.250.251-10-7054.pem
             └── user
 ```
 
 ### Creating Identity
-now, let's use this to register another identity for orderer01 and peer01
+now, let's use this to register another identity for orderer
 ```
-fabric-ca-client register -d --id.name orderer0@payments --id.secret orderer0-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-fabric-ca-client register -d --id.name orderer1@payments --id.secret orderer1-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-fabric-ca-client register -d --id.name orderer2@payments --id.secret orderer2-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-
-fabric-ca-client register -d --id.name peer0@payments --id.secret peer0-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-fabric-ca-client register -d --id.name peer1@payments --id.secret peer0-payments-password -u https://10.250.250.10:7054  --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
+fabric-ca-client register -d --id.name peer0@gopay --id.secret peer0-gopay-password -u https://10.250.251.10:7054  --id.type client --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
 ```

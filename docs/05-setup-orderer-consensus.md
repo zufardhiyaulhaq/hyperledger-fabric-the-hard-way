@@ -1,10 +1,12 @@
 # Setup Hyperledger Orderer Consensus
 there are nevertheless several different implementations for achieving consensus on the strict ordering of transactions between ordering service nodes. We will use Raft consensus implemented in etcd for this purpose. This etcd service will be implemented in each of Orderer node.
 
-### payments-orderer-0
+***notes**: BI organization handle Orderer nodes*
+
+### bi-orderer-0
 ssh to the node
 ```shell
-vagrant ssh payments-orderer-0
+vagrant ssh bi-orderer-0
 ```
 
 download etcd binary
@@ -32,8 +34,8 @@ mkdir -p certificates/etcd/peer
 
 get certificate from TLS fabric CA server
 ```shell
-fabric-ca-client enroll -d -u https://orderer0@payments:orderer0-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.20' --mspdir ${HOME}/certificates/etcd/client
-fabric-ca-client enroll -d -u https://orderer0@payments:orderer0-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --mspdir ${HOME}/certificates/etcd/peer
+fabric-ca-client enroll -d -u https://orderer0@bi:orderer0-bi-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.20' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/certificates/etcd/client
+fabric-ca-client enroll -d -u https://orderer0@bi:orderer0-bi-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/certificates/etcd/peer
 ```
 
 copy certificate to the etcd directory
@@ -44,8 +46,8 @@ sudo cp ${HOME}/certificates/etcd/peer/signcerts/cert.pem /etc/etcd/peer-cert.pe
 
 copy certificate key to the etcd directory, everytime you generate, the filename under `keystore` directory is changing, so you must change it by yourself!
 ```shell
-sudo cp ${HOME}/certificates/etcd/client/keystore/068c4be97f717a79367d862d3f40b0c9de553f9a8235b0829701e8197b43ccf7_sk /etc/etcd/key.pem
-sudo cp ${HOME}/certificates/etcd/peer/keystore/ff0b1dc14df0e9d9780606143844cc919b70d8bda26cac5f2022b30ae5f65061_sk /etc/etcd/peer-key.pem
+sudo cp ${HOME}/certificates/etcd/client/keystore/2eb70e6fa985fb872c11f63b337866fa1554453c940fe058b18e1107b9e9f93e_sk /etc/etcd/key.pem
+sudo cp ${HOME}/certificates/etcd/peer/keystore/f7f0334a06657e2c3cc062922ea74c5d31e204062cfd2d07eafcfbcb74e0d6f9_sk /etc/etcd/peer-key.pem
 ```
 
 copy intermediate CA certificate, everytime you generate, the filename under `tlsintermediatecerts` directory is changing, so you must change it by yourself!
@@ -77,7 +79,7 @@ ExecStart=/usr/local/bin/etcd \
   --listen-peer-urls https://10.250.250.20:2380 \
   --listen-client-urls https://10.250.250.20:2379,https://127.0.0.1:2379 \
   --advertise-client-urls https://10.250.250.20:2379 \
-  --initial-cluster-token payments-orderer \
+  --initial-cluster-token bi-orderer \
   --initial-cluster 10.250.250.20=https://10.250.250.20:2380,10.250.250.21=https://10.250.250.21:2380,10.250.250.22=https://10.250.250.22:2380 \
   --initial-cluster-state new \
   --data-dir=/var/lib/etcd
@@ -96,10 +98,10 @@ sudo systemctl start etcd.service
 sudo systemctl status etcd.service
 ```
 
-### payments-orderer-1
+### bi-orderer-1
 ssh to the node
 ```shell
-vagrant ssh payments-orderer-1
+vagrant ssh bi-orderer-1
 ```
 
 download etcd binary
@@ -127,8 +129,8 @@ mkdir -p certificates/etcd/peer
 
 get certificate from TLS fabric CA server
 ```shell
-fabric-ca-client enroll -d -u https://orderer1@payments:orderer1-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.21' --mspdir ${HOME}/certificates/etcd/client
-fabric-ca-client enroll -d -u https://orderer1@payments:orderer1-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --mspdir ${HOME}/certificates/etcd/peer
+fabric-ca-client enroll -d -u https://orderer1@bi:orderer1-bi-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.21' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/certificates/etcd/client
+fabric-ca-client enroll -d -u https://orderer1@bi:orderer1-bi-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/certificates/etcd/peer
 ```
 
 copy certificate to the etcd directory
@@ -139,8 +141,8 @@ sudo cp ${HOME}/certificates/etcd/peer/signcerts/cert.pem /etc/etcd/peer-cert.pe
 
 copy certificate key to the etcd directory, everytime you generate, the filename under `keystore` directory is changing, so you must change it by yourself!
 ```shell
-sudo cp ${HOME}/certificates/etcd/client/keystore/70202a7423a6338ee2caf904a64f314ee7f0279f5971b51b50cfbf722fab8800_sk /etc/etcd/key.pem
-sudo cp ${HOME}/certificates/etcd/peer/keystore/e25b8e37e8421e5becf4ea17ff393b788de585caaea856e46c4f4e17adc61a8a_sk /etc/etcd/peer-key.pem
+sudo cp ${HOME}/certificates/etcd/client/keystore/3a6a285961690801f5d54c27a6bd69b164b1efaa9255af095857d10069fd894c_sk /etc/etcd/key.pem
+sudo cp ${HOME}/certificates/etcd/peer/keystore/ed300b0ffe8fd4e763dbdade68721cced3ed4489806883784424553514d5c1e0_sk /etc/etcd/peer-key.pem
 ```
 
 copy intermediate CA certificate, everytime you generate, the filename under `tlsintermediatecerts` directory is changing, so you must change it by yourself!
@@ -172,7 +174,7 @@ ExecStart=/usr/local/bin/etcd \
   --listen-peer-urls https://10.250.250.21:2380 \
   --listen-client-urls https://10.250.250.21:2379,https://127.0.0.1:2379 \
   --advertise-client-urls https://10.250.250.21:2379 \
-  --initial-cluster-token payments-orderer \
+  --initial-cluster-token bi-orderer \
   --initial-cluster 10.250.250.20=https://10.250.250.20:2380,10.250.250.21=https://10.250.250.21:2380,10.250.250.22=https://10.250.250.22:2380 \
   --initial-cluster-state new \
   --data-dir=/var/lib/etcd
@@ -191,10 +193,10 @@ sudo systemctl start etcd.service
 sudo systemctl status etcd.service
 ```
 
-### payments-orderer-2
+### bi-orderer-2
 ssh to the node
 ```shell
-vagrant ssh payments-orderer-2
+vagrant ssh bi-orderer-2
 ```
 
 download etcd binary
@@ -222,8 +224,8 @@ mkdir -p certificates/etcd/peer
 
 get certificate from TLS fabric CA server
 ```shell
-fabric-ca-client enroll -d -u https://orderer2@payments:orderer2-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.22' --mspdir ${HOME}/certificates/etcd/client
-fabric-ca-client enroll -d -u https://orderer2@payments:orderer2-payments-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --mspdir ${HOME}/certificates/etcd/peer
+fabric-ca-client enroll -d -u https://orderer2@bi:orderer2-bi-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd --csr.hosts 'localhost,127.0.0.1,10.250.250.22' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/certificates/etcd/client
+fabric-ca-client enroll -d -u https://orderer2@bi:orderer2-bi-password@10.250.250.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn etcd-peer --csr.hosts 'localhost,127.0.0.1,10.250.250.20,10.250.250.21,10.250.250.22' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/certificates/etcd/peer
 ```
 
 copy certificate to the etcd directory
@@ -234,8 +236,8 @@ sudo cp ${HOME}/certificates/etcd/peer/signcerts/cert.pem /etc/etcd/peer-cert.pe
 
 copy certificate key to the etcd directory, everytime you generate, the filename under `keystore` directory is changing, so you must change it by yourself!
 ```shell
-sudo cp ${HOME}/certificates/etcd/client/keystore/d151d0e0cf704f3decad88cb080889d78f3d45b8c294030759e4e391e9282171_sk /etc/etcd/key.pem
-sudo cp ${HOME}/certificates/etcd/peer/keystore/14bca25df8c6d7de982e212e139f2bfae743195892426d8789900ef1d15d3887_sk /etc/etcd/peer-key.pem
+sudo cp ${HOME}/certificates/etcd/client/keystore/ccaa933ec29f608d5b5af135d0dfa96961a3bcdeda2e782790a29c65884b7026_sk /etc/etcd/key.pem
+sudo cp ${HOME}/certificates/etcd/peer/keystore/234e6c599e8fdc5f2e78049a261d5e03321f60350846e389c405c7ca87c62e06_sk /etc/etcd/peer-key.pem
 ```
 
 copy intermediate CA certificate, everytime you generate, the filename under `tlsintermediatecerts` directory is changing, so you must change it by yourself!
@@ -267,7 +269,7 @@ ExecStart=/usr/local/bin/etcd \
   --listen-peer-urls https://10.250.250.22:2380 \
   --listen-client-urls https://10.250.250.22:2379,https://127.0.0.1:2379 \
   --advertise-client-urls https://10.250.250.22:2379 \
-  --initial-cluster-token payments-orderer \
+  --initial-cluster-token bi-orderer \
   --initial-cluster 10.250.250.20=https://10.250.250.20:2380,10.250.250.21=https://10.250.250.21:2380,10.250.250.22=https://10.250.250.22:2380 \
   --initial-cluster-state new \
   --data-dir=/var/lib/etcd

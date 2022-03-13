@@ -156,18 +156,36 @@ We already install chaincode in our channel. let's test this chaincode with admi
 
 *In the real environment, they will send the certificate to us via email or any secure communication, but let's just get from their CA server directly*
 
-```
+```shell
 export CORE_PEER_LOCALMSPID=gopay
 export CORE_PEER_MSPCONFIGPATH=/etc/peer/users/admin
 export ORDERER_CA=/etc/peer/orderer/intermediate-ca.pem
 export GOPAY_CA=/etc/peer/msp/tlsintermediatecerts/intermediate-ca.pem
 export DANA_CA=/etc/peer/organizations/dana/msp/tlsintermediatecerts/intermediate-ca.pem
 
+# invoke InitLedger function to create initial assets
 peer chaincode invoke -o 10.250.250.20:7050 --channelID qris --name qris --tls --cafile $ORDERER_CA --peerAddresses 10.250.251.20:7051 --tlsRootCertFiles $ORG_CA --peerAddresses 10.250.252.20:7051 --tlsRootCertFiles $DANA_CA -c '{"function":"InitLedger","Args":[]}'
 
 2022-03-13 18:12:22.660 UTC 0001 INFO [chaincodeCmd] chaincodeInvokeOrQuery -> Chaincode invoke successful. result: status:200
 
+# check all assets created
 peer chaincode invoke -o 10.250.250.20:7050 --channelID qris --name qris --tls --cafile $ORDERER_CA --peerAddresses 10.250.251.20:7051 --tlsRootCertFiles $ORG_CA --peerAddresses 10.250.252.20:7051 --tlsRootCertFiles $DANA_CA -c '{"Args":["GetAllAssets"]}'
 
 2022-03-13 18:13:16.749 UTC 0001 INFO [chaincodeCmd] chaincodeInvokeOrQuery -> Chaincode invoke successful. result: status:200 payload:"[{\"ID\":\"8b8c7df1-48f8-4aba-9990-57a99d70e010\",\"Owner\":\"Bank Indonesia\",\"Producer\":\"Bank Indonesia\",\"Value\":0}]"
+
+# create new assets
+peer chaincode invoke -o 10.250.250.20:7050 --channelID qris --name qris --tls --cafile $ORDERER_CA --peerAddresses 10.250.251.20:7051 --tlsRootCertFiles $ORG_CA --peerAddresses 10.250.252.20:7051 --tlsRootCertFiles $DANA_CA -c '{"function":"CreateAsset","Args":["8b8c7df1-48f8-4aba-9990-57a99d70e011", "Zufar Dhiyaulhaq", "GoPay", "50"]}'
+
+# check all assets created
+peer chaincode invoke -o 10.250.250.20:7050 --channelID qris --name qris --tls --cafile $ORDERER_CA --peerAddresses 10.250.251.20:7051 --tlsRootCertFiles $ORG_CA --peerAddresses 10.250.252.20:7051 --tlsRootCertFiles $DANA_CA -c '{"Args":["GetAllAssets"]}'
+
+2022-03-13 18:35:26.961 UTC 0001 INFO [chaincodeCmd] chaincodeInvokeOrQuery -> Chaincode invoke successful. result: status:200 payload:"[{\"ID\":\"8b8c7df1-48f8-4aba-9990-57a99d70e010\",\"Owner\":\"Bank Indonesia\",\"Producer\":\"Bank Indonesia\",\"Value\":0},{\"ID\":\"8b8c7df1-48f8-4aba-9990-57a99d70e011\",\"Owner\":\"Zufar Dhiyaulhaq\",\"Producer\":\"GoPay\",\"Value\":50}]"
+
+# update assets
+peer chaincode invoke -o 10.250.250.20:7050 --channelID qris --name qris --tls --cafile $ORDERER_CA --peerAddresses 10.250.251.20:7051 --tlsRootCertFiles $ORG_CA --peerAddresses 10.250.252.20:7051 --tlsRootCertFiles $DANA_CA -c '{"function":"UpdateAsset","Args":["8b8c7df1-48f8-4aba-9990-57a99d70e011", "Zufar Dhiyaulhaq", "GoPay", "500000000"]}'
+
+# check specific assets 
+peer chaincode invoke -o 10.250.250.20:7050 --channelID qris --name qris --tls --cafile $ORDERER_CA --peerAddresses 10.250.251.20:7051 --tlsRootCertFiles $ORG_CA --peerAddresses 10.250.252.20:7051 --tlsRootCertFiles $DANA_CA -c '{"function":"ReadAsset","Args":["8b8c7df1-48f8-4aba-9990-57a99d70e011"]}'
+
+2022-03-13 18:38:50.794 UTC 0001 INFO [chaincodeCmd] chaincodeInvokeOrQuery -> Chaincode invoke successful. result: status:200 payload:"{\"ID\":\"8b8c7df1-48f8-4aba-9990-57a99d70e011\",\"Owner\":\"Zufar Dhiyaulhaq\",\"Producer\":\"GoPay\",\"Value\":500000000}"
 ```

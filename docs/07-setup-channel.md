@@ -58,8 +58,8 @@ mkdir -p tmp/bi/enrollment-admin
 
 cp certificates/tls/intermediate/fullchain.crt tmp/bi
 
-fabric-ca-client getcainfo -d -u https://admin@bi0:adminpasswd@10.250.250.10:7054 --tls.certfiles ${HOME}/tmp/bi/fullchain.crt --mspdir ${HOME}/tmp/bi/tls
-fabric-ca-client getcainfo -d -u https://admin@bi0:adminpasswd@10.250.250.10:7055 --tls.certfiles ${HOME}/tmp/bi/fullchain.crt --mspdir ${HOME}/tmp/bi/enrollment
+fabric-ca-client getcainfo -d -u https://admin@bi:adminpasswd@10.250.250.10:7054 --tls.certfiles ${HOME}/tmp/bi/fullchain.crt --mspdir ${HOME}/tmp/bi/tls
+fabric-ca-client getcainfo -d -u https://admin@bi:adminpasswd@10.250.250.10:7055 --tls.certfiles ${HOME}/tmp/bi/fullchain.crt --mspdir ${HOME}/tmp/bi/enrollment
 fabric-ca-client enroll -d -u https://administrator@bi:administrator-bi-password@10.250.250.10:7055 --tls.certfiles ${HOME}/tmp/bi/fullchain.crt --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/tmp/bi/enrollment-admin
 
 cp tmp/bi/enrollment-admin/signcerts/cert.pem organizations/bi/msp/admincerts

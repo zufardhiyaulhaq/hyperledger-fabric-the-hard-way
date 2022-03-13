@@ -157,6 +157,30 @@ peer:
     endpoint: 10.250.251.20:7051
     externalEndpoint: 10.250.251.20:7051
     bootstrap: 10.250.251.21:7051
+    useLeaderElection: false
+    orgLeader: true
+    state:
+        enabled: true
+    pvtData:
+      pushAckTimeout: 3s
+      implicitCollectionDisseminationPolicy:
+          requiredPeerCount: 0
+          maxPeerCount: 1
+
+  handlers:
+    authFilters:
+      - name: DefaultAuth
+      - name: ExpirationCheck   
+    decorators:
+      - name: DefaultDecorator
+    endorsers:
+      escc:
+        name: DefaultEndorsement
+        library:
+    validators:
+      vscc:
+        name: DefaultValidation
+        library:
 
   tls:
     enabled: true
@@ -206,6 +230,15 @@ vm:
 
 chaincode:
   externalBuilders: []
+  builder: $(DOCKER_NS)/fabric-ccenv:$(TWO_DIGIT_VERSION)
+  pull: false
+  golang:
+      runtime: $(DOCKER_NS)/fabric-baseos:$(TWO_DIGIT_VERSION)
+      dynamicLink: false
+  java:
+      runtime: $(DOCKER_NS)/fabric-javaenv:$(TWO_DIGIT_VERSION)
+  node:
+      runtime: $(DOCKER_NS)/fabric-nodeenv:$(TWO_DIGIT_VERSION)
   system:
     _lifecycle: enable
     cscc: enable
@@ -419,6 +452,30 @@ peer:
     endpoint: 10.250.251.21:7051
     externalEndpoint: 10.250.251.21:7051
     bootstrap: 10.250.251.20:7051
+    useLeaderElection: false
+    orgLeader: true
+    state:
+        enabled: true
+    pvtData:
+      pushAckTimeout: 3s
+      implicitCollectionDisseminationPolicy:
+          requiredPeerCount: 0
+          maxPeerCount: 1
+
+  handlers:
+    authFilters:
+      - name: DefaultAuth
+      - name: ExpirationCheck   
+    decorators:
+      - name: DefaultDecorator
+    endorsers:
+      escc:
+        name: DefaultEndorsement
+        library:
+    validators:
+      vscc:
+        name: DefaultValidation
+        library:
 
   tls:
     enabled: true
@@ -468,6 +525,15 @@ vm:
 
 chaincode:
   externalBuilders: []
+  builder: $(DOCKER_NS)/fabric-ccenv:$(TWO_DIGIT_VERSION)
+  pull: false
+  golang:
+      runtime: $(DOCKER_NS)/fabric-baseos:$(TWO_DIGIT_VERSION)
+      dynamicLink: false
+  java:
+      runtime: $(DOCKER_NS)/fabric-javaenv:$(TWO_DIGIT_VERSION)
+  node:
+      runtime: $(DOCKER_NS)/fabric-nodeenv:$(TWO_DIGIT_VERSION)
   system:
     _lifecycle: enable
     cscc: enable

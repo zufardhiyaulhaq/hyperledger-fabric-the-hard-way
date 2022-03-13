@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -22,7 +21,7 @@ type QRISAsset struct {
 // InitLedger adds a base set of assets to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	assets := []QRISAsset{
-		{ID: uuid.NewString(), Owner: "Bank Indonesia", Producer: "Bank Indonesia", Value: 0},
+		{ID: "8b8c7df1-48f8-4aba-9990-57a99d70e010", Owner: "Bank Indonesia", Producer: "Bank Indonesia", Value: 0},
 	}
 
 	for _, asset := range assets {

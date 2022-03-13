@@ -37,6 +37,17 @@ sudo mkdir -p /etc/peer/msp/signcerts
 sudo mkdir -p /etc/peer/msp/tlscacerts
 sudo mkdir -p /etc/peer/msp/tlsintermediatecerts
 sudo mkdir -p /etc/peer/msp/operationscerts
+sudo mkdir -p /etc/peer/msp/admincerts
+
+sudo mkdir -p /etc/peer/users/admin/cacerts
+sudo mkdir -p /etc/peer/users/admin/intermediatecerts
+sudo mkdir -p /etc/peer/users/admin/keystore
+sudo mkdir -p /etc/peer/users/admin/signcerts
+sudo mkdir -p /etc/peer/users/admin/tlscacerts
+sudo mkdir -p /etc/peer/users/admin/tlsintermediatecerts
+sudo mkdir -p /etc/peer/users/admin/operationscerts
+sudo mkdir -p /etc/peer/users/admin/admincerts
+
 sudo mkdir -p /etc/peer/tls/
 ```
 
@@ -49,12 +60,14 @@ create directory for tls & enrollment certificate, we will copy certificate in t
 ```
 mkdir -p certificates/peer/tls/
 mkdir -p certificates/peer/enrollment/
+mkdir -p certificates/peer/enrollment-admin/
 ```
 
 get the certificate
 ```
 fabric-ca-client enroll -d -u https://peer0@dana:peer0-dana-password@10.250.252.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn peer --csr.hosts 'localhost,127.0.0.1,10.250.252.20' --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/certificates/peer/tls
 fabric-ca-client enroll -d -u https://peer0@dana:peer0-dana-password@10.250.252.10:7055 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/certificates/peer/enrollment
+fabric-ca-client enroll -d -u https://administrator@dana:administrator-dana-password@10.250.252.10:7055 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/certificates/peer/enrollment-admin
 ```
 
 check the certificate
@@ -70,6 +83,18 @@ tree ${HOME}/certificates/peer/
 │   │   └── 10-250-252-10-7055.pem
 │   ├── keystore
 │   │   └── cb287d1c1060a58569ba50fe2136b20e019fd9ab2743679a8b905e019f3f1783_sk
+│   ├── signcerts
+│   │   └── cert.pem
+│   └── user
+├── enrollment-admin
+│   ├── IssuerPublicKey
+│   ├── IssuerRevocationPublicKey
+│   ├── cacerts
+│   │   └── 10-250-252-10-7055.pem
+│   ├── intermediatecerts
+│   │   └── 10-250-252-10-7055.pem
+│   ├── keystore
+│   │   └── 882c159b958506bba526d759534027bebf52cc1b4e95d27b954cbc271261d83f_sk
 │   ├── signcerts
 │   │   └── cert.pem
 │   └── user
@@ -90,6 +115,7 @@ tree ${HOME}/certificates/peer/
 
 copy the certificate to `/etc/peer`
 ```
+sudo cp certificates/peer/enrollment-admin/signcerts/cert.pem /etc/peer/msp/admincerts/cert.pem
 sudo cp certificates/peer/enrollment/signcerts/cert.pem /etc/peer/msp/signcerts/cert.pem
 sudo cp certificates/peer/enrollment/keystore/cb287d1c1060a58569ba50fe2136b20e019fd9ab2743679a8b905e019f3f1783_sk /etc/peer/msp/keystore/key.pem
 sudo cp certificates/peer/enrollment/cacerts/10-250-252-10-7055.pem /etc/peer/msp/cacerts/root-ca.pem
@@ -97,6 +123,15 @@ sudo cp certificates/peer/enrollment/intermediatecerts/10-250-252-10-7055.pem /e
 
 sudo cp certificates/peer/tls/tlscacerts/tls-10-250-252-10-7054.pem /etc/peer/msp/tlscacerts/root-ca.pem
 sudo cp certificates/peer/tls/tlsintermediatecerts/tls-10-250-252-10-7054.pem /etc/peer/msp/tlsintermediatecerts/intermediate-ca.pem
+
+sudo cp certificates/peer/enrollment-admin/signcerts/cert.pem /etc/peer/users/admin/admincerts/cert.pem
+sudo cp certificates/peer/enrollment-admin/signcerts/cert.pem /etc/peer/users/admin/signcerts/cert.pem
+sudo cp certificates/peer/enrollment-admin/keystore/882c159b958506bba526d759534027bebf52cc1b4e95d27b954cbc271261d83f_sk /etc/peer/users/admin/keystore/key.pem
+sudo cp certificates/peer/enrollment-admin/cacerts/10-250-252-10-7055.pem /etc/peer/users/admin/cacerts/root-ca.pem
+sudo cp certificates/peer/enrollment-admin/intermediatecerts/10-250-252-10-7055.pem /etc/peer/users/admin/intermediatecerts/intermediate-ca.pem
+
+sudo cp certificates/peer/tls/tlscacerts/tls-10-250-252-10-7054.pem /etc/peer/users/admin/tlscacerts/root-ca.pem
+sudo cp certificates/peer/tls/tlsintermediatecerts/tls-10-250-252-10-7054.pem /etc/peer/users/admin/tlsintermediatecerts/intermediate-ca.pem
 
 sudo cp certificates/peer/tls/tlsintermediatecerts/tls-10-250-252-10-7054.pem /etc/peer/tls/intermediate-ca.pem
 sudo cp certificates/peer/tls/signcerts/cert.pem /etc/peer/tls/cert.pem
@@ -171,6 +206,11 @@ vm:
 
 chaincode:
   externalBuilders: []
+  system:
+    _lifecycle: enable
+    cscc: enable
+    lscc: enable
+    qscc: enable
 EOF
 ```
 
@@ -259,6 +299,17 @@ sudo mkdir -p /etc/peer/msp/signcerts
 sudo mkdir -p /etc/peer/msp/tlscacerts
 sudo mkdir -p /etc/peer/msp/tlsintermediatecerts
 sudo mkdir -p /etc/peer/msp/operationscerts
+sudo mkdir -p /etc/peer/msp/admincerts
+
+sudo mkdir -p /etc/peer/users/admin/cacerts
+sudo mkdir -p /etc/peer/users/admin/intermediatecerts
+sudo mkdir -p /etc/peer/users/admin/keystore
+sudo mkdir -p /etc/peer/users/admin/signcerts
+sudo mkdir -p /etc/peer/users/admin/tlscacerts
+sudo mkdir -p /etc/peer/users/admin/tlsintermediatecerts
+sudo mkdir -p /etc/peer/users/admin/operationscerts
+sudo mkdir -p /etc/peer/users/admin/admincerts
+
 sudo mkdir -p /etc/peer/tls/
 ```
 
@@ -271,12 +322,14 @@ create directory for tls & enrollment certificate, we will copy certificate in t
 ```
 mkdir -p certificates/peer/tls/
 mkdir -p certificates/peer/enrollment/
+mkdir -p certificates/peer/enrollment-admin/
 ```
 
 get the certificate
 ```
 fabric-ca-client enroll -d -u https://peer1@dana:peer1-dana-password@10.250.252.10:7054 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --enrollment.profile tls --csr.cn peer --csr.hosts 'localhost,127.0.0.1,10.250.252.21' --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/certificates/peer/tls
 fabric-ca-client enroll -d -u https://peer1@dana:peer1-dana-password@10.250.252.10:7055 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/certificates/peer/enrollment
+fabric-ca-client enroll -d -u https://administrator@dana:administrator-dana-password@10.250.251.10:7055 --tls.certfiles ${HOME}/certificates/tls/intermediate/fullchain.crt --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/certificates/peer/enrollment-admin
 ```
 
 check the certificate
@@ -292,6 +345,18 @@ tree ${HOME}/certificates/peer/
 │   │   └── 10-250-252-10-7055.pem
 │   ├── keystore
 │   │   └── bbe0dd3a80d89feb5849dc3615bdd7856f927f9beb65798469452457bc7bc59c_sk
+│   ├── signcerts
+│   │   └── cert.pem
+│   └── user
+├── enrollment-admin
+│   ├── IssuerPublicKey
+│   ├── IssuerRevocationPublicKey
+│   ├── cacerts
+│   │   └── 10-250-252-10-7055.pem
+│   ├── intermediatecerts
+│   │   └── 10-250-252-10-7055.pem
+│   ├── keystore
+│   │   └── 3bae5c57d1b886a93349574fac07a243166494b6d2e514603bdc80cf832b679e_sk
 │   ├── signcerts
 │   │   └── cert.pem
 │   └── user
@@ -312,6 +377,7 @@ tree ${HOME}/certificates/peer/
 
 copy the certificate to `/etc/peer`
 ```
+sudo cp certificates/peer/enrollment-admin/signcerts/cert.pem /etc/peer/msp/admincerts/cert.pem
 sudo cp certificates/peer/enrollment/signcerts/cert.pem /etc/peer/msp/signcerts/cert.pem
 sudo cp certificates/peer/enrollment/keystore/bbe0dd3a80d89feb5849dc3615bdd7856f927f9beb65798469452457bc7bc59c_sk /etc/peer/msp/keystore/key.pem
 sudo cp certificates/peer/enrollment/cacerts/10-250-252-10-7055.pem /etc/peer/msp/cacerts/root-ca.pem
@@ -319,6 +385,15 @@ sudo cp certificates/peer/enrollment/intermediatecerts/10-250-252-10-7055.pem /e
 
 sudo cp certificates/peer/tls/tlscacerts/tls-10-250-252-10-7054.pem /etc/peer/msp/tlscacerts/root-ca.pem
 sudo cp certificates/peer/tls/tlsintermediatecerts/tls-10-250-252-10-7054.pem /etc/peer/msp/tlsintermediatecerts/intermediate-ca.pem
+
+sudo cp certificates/peer/enrollment-admin/signcerts/cert.pem /etc/peer/users/admin/admincerts/cert.pem
+sudo cp certificates/peer/enrollment-admin/signcerts/cert.pem /etc/peer/users/admin/signcerts/cert.pem
+sudo cp certificates/peer/enrollment-admin/keystore/3bae5c57d1b886a93349574fac07a243166494b6d2e514603bdc80cf832b679e_sk /etc/peer/users/admin/keystore/key.pem
+sudo cp certificates/peer/enrollment-admin/cacerts/10-250-252-10-7055.pem /etc/peer/users/admin/cacerts/root-ca.pem
+sudo cp certificates/peer/enrollment-admin/intermediatecerts/10-250-252-10-7055.pem /etc/peer/users/admin/intermediatecerts/intermediate-ca.pem
+
+sudo cp certificates/peer/tls/tlscacerts/tls-10-250-252-10-7054.pem /etc/peer/users/admin/tlscacerts/root-ca.pem
+sudo cp certificates/peer/tls/tlsintermediatecerts/tls-10-250-252-10-7054.pem /etc/peer/users/admin/tlsintermediatecerts/intermediate-ca.pem
 
 sudo cp certificates/peer/tls/tlsintermediatecerts/tls-10-250-252-10-7054.pem /etc/peer/tls/intermediate-ca.pem
 sudo cp certificates/peer/tls/signcerts/cert.pem /etc/peer/tls/cert.pem
@@ -393,6 +468,11 @@ vm:
 
 chaincode:
   externalBuilders: []
+  system:
+    _lifecycle: enable
+    cscc: enable
+    lscc: enable
+    qscc: enable
 EOF
 ```
 

@@ -290,4 +290,8 @@ now, let's use this to register another identity for peers
 ```
 fabric-ca-client register -d --id.name peer0@gopay --id.secret peer0-gopay-password -u https://10.250.251.10:7055  --id.type peer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
 fabric-ca-client register -d --id.name peer1@gopay --id.secret peer1-gopay-password -u https://10.250.251.10:7055  --id.type peer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+
+fabric-ca-client register -d --id.name administrator@gopay --id.secret administrator-gopay-password -u https://10.250.251.10:7055  --id.type admin --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+
+fabric-ca-client register -d --id.name user01@gopay --id.secret user01-gopay-password -u https://10.250.251.10:7055  --id.type user --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
 ```

@@ -291,4 +291,6 @@ now, let's use this to register another identity for orderers
 fabric-ca-client register -d --id.name orderer0@bi --id.secret orderer0-bi-password -u https://10.250.250.10:7055  --id.type orderer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
 fabric-ca-client register -d --id.name orderer1@bi --id.secret orderer1-bi-password -u https://10.250.250.10:7055  --id.type orderer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
 fabric-ca-client register -d --id.name orderer2@bi --id.secret orderer2-bi-password -u https://10.250.250.10:7055  --id.type orderer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+
+fabric-ca-client register -d --id.name administrator@bi --id.secret administrator-bi-password -u https://10.250.250.10:7055  --id.type admin --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
 ```

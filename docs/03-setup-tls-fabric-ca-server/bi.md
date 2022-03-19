@@ -37,21 +37,12 @@ sudo docker-compose --file docker-compose/tls/docker-compose.yaml up --build -d
 ### Setup Fabric CA
 create config directory
 ```shell
-sudo mkdir -p /etc/hyperledger/tls-fabric-ca-server
-```
-
-copy the needed certificate to the directory
-```
-sudo cp certificates/tls/intermediate/ca.crt /etc/hyperledger/tls-fabric-ca-server/
-sudo cp certificates/tls/intermediate/ca.key /etc/hyperledger/tls-fabric-ca-server/
-sudo cp certificates/tls/intermediate/fullchain.crt /etc/hyperledger/tls-fabric-ca-server/
-sudo cp certificates/tls/client/tls-service/tls.crt /etc/hyperledger/tls-fabric-ca-server/
-sudo cp certificates/tls/client/tls-service/tls.key /etc/hyperledger/tls-fabric-ca-server/
+sudo mkdir -p /etc/hyperledger/tls-fabric-ca
 ```
 
 create TLS fabric CA configuration
 ```shell
-cat <<EOF | sudo tee /etc/hyperledger/tls-fabric-ca-server/fabric-ca-server-config.yaml
+cat <<EOF | sudo tee /etc/hyperledger/tls-fabric-ca/fabric-ca-server-config.yaml
 # Service definition for Hyperledger fabric-ca server
 
 version: 1.5.2
@@ -67,16 +58,16 @@ crlsizelimit: 512000
 
 tls:
   enabled: true
-  certfile: /etc/hyperledger/tls-fabric-ca-server/tls.crt
-  keyfile: /etc/hyperledger/tls-fabric-ca-server/tls.key
+  keyfile: /etc/secrets/bi/services/tls-fabric-ca-server/tls/key.pem
+  certfile: /etc/secrets/bi/services/tls-fabric-ca-server/tls/cert.pem
   clientauth:
     type: NoClientCert
 
 ca:
-  name: bi
-  keyfile: /etc/hyperledger/tls-fabric-ca-server/ca.key
-  certfile: /etc/hyperledger/tls-fabric-ca-server/ca.crt
-  chainfile: /etc/hyperledger/tls-fabric-ca-server/fullchain.crt
+  name: intermediate.tls.bi.go.id
+  keyfile: /etc/secrets/bi/tlsca/intermediate-key.pem
+  certfile: /etc/secrets/bi/tlsca/intermediate-cert.pem
+  chainfile: /etc/secrets/bi/tlsca/intermediate-bundle.pem
   reenrollIgnoreCertExpiry: false
 
 crl:
@@ -86,8 +77,8 @@ registry:
   maxenrollments: -1
 
   identities:
-     - name: admin@bi
-       pass: adminpasswd
+     - name: root@tls.bi.go.id
+       pass: root-password
        type: client
        affiliation: ""
        attrs:
@@ -221,9 +212,9 @@ After=network-online.target
 [Service]
 Type=simple
 Restart=on-failure
-Environment=FABRIC_CA_HOME=/etc/hyperledger/tls-fabric-ca-server
-Environment=FABRIC_CA_SERVER_HOME=/etc/hyperledger/tls-fabric-ca-server
-Environment=CA_CFG_PATH=/etc/hyperledger/tls-fabric-ca-server
+Environment=FABRIC_CA_HOME=/etc/hyperledger/tls-fabric-ca
+Environment=FABRIC_CA_SERVER_HOME=/etc/hyperledger/tls-fabric-ca
+Environment=CA_CFG_PATH=/etc/hyperledger/tls-fabric-ca
 ExecStart=/usr/local/bin/fabric-ca-server start
 
 [Install]
@@ -239,55 +230,59 @@ sudo systemctl status tls-fabric-ca-server.service
 ```
 
 ### Enrolling Admin Users
-By default, TLS Fabric CA will create an admin identity
+By default, TLS Fabric CA will create an root identity
 ```
-- name: admin@bi
-  pass: adminpasswd
+- name: root@tls.bi.go.id
+  pass: root-password
 ```
-This admin identity is used for creating another identity for orderer and peer nodes. In order to create another identity, we need to first collect the certificate for this default identity
+This root identity is used for creating another identity for admin, client, and orderer nodes. In order to create another identity, we need to first collect the certificate from this root identity
 
-create directory for admin identity
+create directory for root identity
 ```
-mkdir -p identity/tls/admin/
-mkdir -p identity/tls/admin/msp
-```
-
-copy TLS CA chain
-```
-cp certificates/tls/intermediate/fullchain.crt identity/tls/admin/
+mkdir -p organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
 ```
 
-get admin identity certificate
+get root identity certificate
 ```
-fabric-ca-client enroll -d -u https://admin@bi:adminpasswd@10.250.250.10:7054 --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/identity/tls/admin/msp
+fabric-ca-client enroll -d -u https://root@tls.bi.go.id:root-password@10.250.250.10:7054 --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
 ```
 
 if we check, we will find
 ```
-tree identity/
-identity/
-└── tls
-    └── admin
-        ├── fullchain.crt
-        └── msp
-            ├── cacerts
-            ├── IssuerPublicKey
-            ├── IssuerRevocationPublicKey
-            ├── keystore
-            │   └── 6216c173c326b4b738ea7e41cc47db5c4a73d42a2d4335ab01ec30f3ea4c69ef_sk
-            ├── signcerts
-            │   └── cert.pem
-            ├── tlscacerts
-            │   └── tls-10-250-250-10-7054.pem
-            ├── tlsintermediatecerts
-            │   └── tls-10-250-250-10-7054.pem
-            └── user
+tree organizations
+organizations/
+└── OrdererOrganizations
+    └── bi
+        ├── msp
+        │   ├── cacerts
+        │   │   └── root-cert.pem
+        │   ├── intermediatecerts
+        │   │   └── intermediate-cert.pem
+        │   ├── tlscacerts
+        │   │   └── root-cert.pem
+        │   └── tlsintermediatecerts
+        │       └── intermediate-cert.pem
+        └── users
+            └── root@tls.bi.go.id
+                └── msp
+                    ├── IssuerPublicKey
+                    ├── IssuerRevocationPublicKey
+                    ├── cacerts
+                    ├── keystore
+                    │   └── 19b80566799d5e7a97a9ec3024c6c7bca90a35cb5d48af168dca79a248e585c0_sk
+                    ├── signcerts
+                    │   └── cert.pem
+                    ├── tlscacerts
+                    │   └── tls-10-250-250-10-7054.pem
+                    ├── tlsintermediatecerts
+                    │   └── tls-10-250-250-10-7054.pem
+                    └── user
 ```
 
 ### Creating Identity
-now, let's use this to register another identity for orderer
+now, let's use this to register another identity for orderer. We will using this when creating orderer service
 ```
-fabric-ca-client register -d --id.name orderer0@bi --id.secret orderer0-bi-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-fabric-ca-client register -d --id.name orderer1@bi --id.secret orderer1-bi-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-fabric-ca-client register -d --id.name orderer2@bi --id.secret orderer2-bi-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
+fabric-ca-client register -d --id.name orderer0@tls.bi.go.id --id.secret orderer0-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
+fabric-ca-client register -d --id.name orderer1@tls.bi.go.id --id.secret orderer1-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
+fabric-ca-client register -d --id.name orderer2@tls.bi.go.id --id.secret orderer2-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
 ```

@@ -3,16 +3,6 @@
 ***notes**: BI organization handle Orderer nodes*
 
 ### bi-orderer-0
-Download orderer binary
-```
-wget https://github.com/hyperledger/fabric/releases/download/v2.4.3/hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-tar xzvf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-sudo cp bin/* /usr/local/bin/
-rm -rf bin/
-rm -rf config/
-rm -rf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-```
-
 Create directory for msp & tls certificate
 ```
 sudo mkdir -p /etc/orderer/msp/cacerts
@@ -198,16 +188,6 @@ sudo systemctl status fabric-orderer.service
 ```
 
 ### bi-orderer-1
-Download orderer binary
-```
-wget https://github.com/hyperledger/fabric/releases/download/v2.4.3/hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-tar xzvf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-sudo cp bin/* /usr/local/bin/
-rm -rf bin/
-rm -rf config/
-rm -rf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-```
-
 Create directory for msp & tls certificate
 ```
 sudo mkdir -p /etc/orderer/msp/cacerts
@@ -393,16 +373,6 @@ sudo systemctl status fabric-orderer.service
 ```
 
 ### bi-orderer-2
-Download orderer binary
-```
-wget https://github.com/hyperledger/fabric/releases/download/v2.4.3/hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-tar xzvf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-sudo cp bin/* /usr/local/bin/
-rm -rf bin/
-rm -rf config/
-rm -rf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-```
-
 Create directory for msp & tls certificate
 ```
 sudo mkdir -p /etc/orderer/msp/cacerts

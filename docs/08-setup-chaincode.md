@@ -1,23 +1,6 @@
 # Setup Chaincode
 if we check the policy, the transaction for QRIS need to be endorsed by majority of the peer. Let's write the chaincode and deploy in in all peers. 
 
-In each peer, install golang
-```shell
-sudo su
-
-bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
-source /root/.gvm/scripts/gvm
-
-sudo apt-get install binutils bison gcc make
-
-gvm install go1.4 -B
-gvm use go1.4
-export GOROOT_BOOTSTRAP=$GOROOT
-
-gvm install go1.16.3
-gvm use go1.16.3
-```
-
 In each peer, clone the repository to get the chaincode.
 ```shell
 sudo su

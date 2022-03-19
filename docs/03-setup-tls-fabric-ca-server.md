@@ -3,3 +3,6 @@ This CA generates the certificates used to secure communications on Transport La
 - [BI](03-setup-tls-fabric-ca-server/bi.md)
 - [Dana](03-setup-tls-fabric-ca-server/dana.md)
 - [GoPay](03-setup-tls-fabric-ca-server/gopay.md)
+
+### Certificate Architecture
+![Certificate Architecture](assets/images/hyperledger-certificate.drawio.png?raw=true "Certificate Architecture")

@@ -4,30 +4,6 @@ ssh to the nodes
 vagrant ssh dana-peer-0
 ```
 
-Download peer binary
-```
-wget https://github.com/hyperledger/fabric/releases/download/v2.4.3/hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-tar xzvf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-sudo cp bin/* /usr/local/bin/
-rm -rf bin/
-rm -rf config/
-rm -rf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-```
-
-install docker
-```
-sudo apt-get install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release -y 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-```
-
 Create directory for msp & tls certificate
 ```
 sudo mkdir -p /etc/peer/msp/cacerts
@@ -297,30 +273,6 @@ sudo systemctl status fabric-peer.service
 ssh to the nodes
 ```shell
 vagrant ssh dana-peer-1
-```
-
-Download peer binary
-```
-wget https://github.com/hyperledger/fabric/releases/download/v2.4.3/hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-tar xzvf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-sudo cp bin/* /usr/local/bin/
-rm -rf bin/
-rm -rf config/
-rm -rf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-```
-
-install docker
-```
-sudo apt-get install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release -y 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io -y
 ```
 
 Create directory for msp & tls certificate

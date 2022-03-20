@@ -9,22 +9,6 @@ ssh to the nodes
 vagrant ssh dana-ca-server-0
 ```
 
-install docker & docker-compose
-```
-sudo apt-get install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release -y 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update && sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-```
-
 create directory for docker related files
 ```shell
 mkdir -p docker-compose/tls/
@@ -53,21 +37,12 @@ sudo docker-compose --file docker-compose/tls/docker-compose.yaml up --build -d
 ### Setup Fabric CA
 create config directory
 ```shell
-sudo mkdir -p /etc/hyperledger/tls-fabric-ca-server
-```
-
-copy the needed certificate to the directory
-```
-sudo cp certificates/tls/intermediate/ca.crt /etc/hyperledger/tls-fabric-ca-server/
-sudo cp certificates/tls/intermediate/ca.key /etc/hyperledger/tls-fabric-ca-server/
-sudo cp certificates/tls/intermediate/fullchain.crt /etc/hyperledger/tls-fabric-ca-server/
-sudo cp certificates/tls/client/tls-service/tls.crt /etc/hyperledger/tls-fabric-ca-server/
-sudo cp certificates/tls/client/tls-service/tls.key /etc/hyperledger/tls-fabric-ca-server/
+sudo mkdir -p /etc/hyperledger/tls-fabric-ca
 ```
 
 create TLS fabric CA configuration
 ```shell
-cat <<EOF | sudo tee /etc/hyperledger/tls-fabric-ca-server/fabric-ca-server-config.yaml
+cat <<EOF | sudo tee /etc/hyperledger/tls-fabric-ca/fabric-ca-server-config.yaml
 # Service definition for Hyperledger fabric-ca server
 
 version: 1.5.2
@@ -83,16 +58,16 @@ crlsizelimit: 512000
 
 tls:
   enabled: true
-  certfile: /etc/hyperledger/tls-fabric-ca-server/tls.crt
-  keyfile: /etc/hyperledger/tls-fabric-ca-server/tls.key
+  keyfile: /etc/secrets/dana/services/tls-fabric-ca-server/tls/key.pem
+  certfile: /etc/secrets/dana/services/tls-fabric-ca-server/tls/cert.pem
   clientauth:
     type: NoClientCert
 
 ca:
-  name: dana
-  keyfile: /etc/hyperledger/tls-fabric-ca-server/ca.key
-  certfile: /etc/hyperledger/tls-fabric-ca-server/ca.crt
-  chainfile: /etc/hyperledger/tls-fabric-ca-server/fullchain.crt
+  name: intermediate.tls.dana.id
+  keyfile: /etc/secrets/dana/tlsca/intermediate-key.pem
+  certfile: /etc/secrets/dana/tlsca/intermediate-cert.pem
+  chainfile: /etc/secrets/dana/tlsca/intermediate-bundle.pem
   reenrollIgnoreCertExpiry: false
 
 crl:
@@ -102,8 +77,8 @@ registry:
   maxenrollments: -1
 
   identities:
-     - name: admin@dana
-       pass: adminpasswd
+     - name: root@tls.dana.id
+       pass: root-password
        type: client
        affiliation: ""
        attrs:
@@ -237,9 +212,9 @@ After=network-online.target
 [Service]
 Type=simple
 Restart=on-failure
-Environment=FABRIC_CA_HOME=/etc/hyperledger/tls-fabric-ca-server
-Environment=FABRIC_CA_SERVER_HOME=/etc/hyperledger/tls-fabric-ca-server
-Environment=CA_CFG_PATH=/etc/hyperledger/tls-fabric-ca-server
+Environment=FABRIC_CA_HOME=/etc/hyperledger/tls-fabric-ca
+Environment=FABRIC_CA_SERVER_HOME=/etc/hyperledger/tls-fabric-ca
+Environment=CA_CFG_PATH=/etc/hyperledger/tls-fabric-ca
 ExecStart=/usr/local/bin/fabric-ca-server start
 
 [Install]
@@ -255,54 +230,58 @@ sudo systemctl status tls-fabric-ca-server.service
 ```
 
 ### Enrolling Admin Users
-By default, TLS Fabric CA will create an admin identity
+By default, TLS Fabric CA will create an root identity
 ```
-- name: admin@dana
-  pass: adminpasswd
+- name: root@tls.dana.id
+  pass: root-password
 ```
-This admin identity is used for creating another identity for orderer and peer nodes. In order to create another identity, we need to first collect the certificate for this default identity
+This root identity is used for creating another identity for admin, client, and peer nodes. In order to create another identity, we need to first collect the certificate from this root identity
 
-create directory for admin identity
+create directory for root identity
 ```
-mkdir -p identity/tls/admin/
-mkdir -p identity/tls/admin/msp
-```
-
-copy TLS CA chain
-```
-cp certificates/tls/intermediate/fullchain.crt identity/tls/admin/
+mkdir -p organizations/PeerOrganizations/dana/users/root@tls.dana.id/tls
 ```
 
-get admin identity certificate
+get root identity certificate
 ```
-fabric-ca-client enroll -d -u https://admin@dana:adminpasswd@10.250.252.10:7054 --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/identity/tls/admin/msp
+fabric-ca-client enroll -d -u https://root@tls.dana.id:root-password@10.250.252.10:7054 --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/tls
 ```
 
 if we check, we will find
 ```
-tree identity/
-identity/
-└── tls
-    └── admin
-        ├── fullchain.crt
-        └── msp
-            ├── cacerts
-            ├── IssuerPublicKey
-            ├── IssuerRevocationPublicKey
-            ├── keystore
-            │   └── 6216c173c326b4b738ea7e41cc47db5c4a73d42a2d4335ab01ec30f3ea4c69ef_sk
-            ├── signcerts
-            │   └── cert.pem
-            ├── tlscacerts
-            │   └── tls-10.250.252-10-7054.pem
-            ├── tlsintermediatecerts
-            │   └── tls-10.250.252-10-7054.pem
-            └── user
+tree organizations
+organizations
+└── PeerOrganizations
+    └── dana
+        ├── msp
+        │   ├── cacerts
+        │   │   └── root-cert.pem
+        │   ├── intermediatecerts
+        │   │   └── intermediate-cert.pem
+        │   ├── tlscacerts
+        │   │   └── root-cert.pem
+        │   └── tlsintermediatecerts
+        │       └── intermediate-cert.pem
+        └── users
+            └── root@tls.dana.id
+                └── tls
+                    ├── IssuerPublicKey
+                    ├── IssuerRevocationPublicKey
+                    ├── cacerts
+                    ├── keystore
+                    │   └── dff944ad9296781b2bc9d65d06f4b0e7bc7dd88c85ac4d8cadc5d7ea24436fbc_sk
+                    ├── signcerts
+                    │   └── cert.pem
+                    ├── tlscacerts
+                    │   └── tls-10-250-252-10-7054.pem
+                    ├── tlsintermediatecerts
+                    │   └── tls-10-250-252-10-7054.pem
+                    └── user
 ```
 
 ### Creating Identity
-now, let's use this to register another identity for orderer
+now, let's use this to register another identity for peer. We will using this when creating peer service
 ```
-fabric-ca-client register -d --id.name peer0@dana --id.secret peer0-dana-password -u https://10.250.252.10:7054  --id.type client --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
-fabric-ca-client register -d --id.name peer1@dana --id.secret peer1-dana-password -u https://10.250.252.10:7054  --id.type client --tls.certfiles ${HOME}/identity/tls/admin/fullchain.crt --mspdir ${HOME}/identity/tls/admin/msp
+fabric-ca-client register -d --id.name peer0@tls.dana.id --id.secret peer0-password -u https://10.250.252.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/tls
+fabric-ca-client register -d --id.name peer1@tls.dana.id --id.secret peer1-password -u https://10.250.252.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/tls
 ```

@@ -3,3 +3,6 @@ this CA is used to generate (through a process called “enrollment”) the cert
 - [BI](04-setup-enrollment-fabric-ca-server/bi.md)
 - [Dana](04-setup-enrollment-fabric-ca-server/dana.md)
 - [GoPay](04-setup-enrollment-fabric-ca-server/gopay.md)
+
+### Certificate Architecture
+![Certificate Architecture](assets/images/hyperledger-certificate.drawio.png?raw=true "Certificate Architecture")

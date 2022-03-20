@@ -9,98 +9,150 @@ vagrant ssh gopay-ca-server-0
 
 create root CA directory
 ```shell
-mkdir -p certificates/enrollment/root/
-mkdir -p certificates/tls/root/
+sudo mkdir -p /etc/secrets/gopay/ca/
+sudo mkdir -p /etc/secrets/gopay/tlsca/
 ```
 
 create enrollment root CA
 ```shell
-step certificate create root-ledger-gopay-ca certificates/enrollment/root/root.crt certificates/enrollment/root/root.key --profile root-ca --kty EC --no-password --insecure --not-after 87600h --san root.ledger.gopay
+sudo step certificate create root-ledger-gopay-ca /etc/secrets/gopay/ca/root-cert.pem /etc/secrets/gopay/ca/root-key.pem --profile root-ca --kty EC --no-password --insecure --not-after 87600h --san root.enrollment.gopay.co.id
 ```
 
 create TLS root CA
 ```shell
-step certificate create root-ledger-tls-gopay-ca certificates/tls/root/root.crt certificates/tls/root/root.key --profile root-ca --kty EC --no-password --insecure --not-after 87600h --san root.ledger.tls.gopay
+sudo step certificate create root-ledger-tls-gopay-ca /etc/secrets/gopay/tlsca/root-cert.pem /etc/secrets/gopay/tlsca/root-key.pem --profile root-ca --kty EC --no-password --insecure --not-after 87600h --san root.tls.gopay.co.id
 ```
 
 ### Intermediate CA
-create Intermediate CA directory
-```shell
-mkdir -p certificates/enrollment/intermediate
-mkdir -p certificates/tls/intermediate
-```
-
 Create enrollment Intermediate CA
 ```shell
-step certificate create intermediate-ledger-gopay-ca certificates/enrollment/intermediate/ca.crt certificates/enrollment/intermediate/ca.key --profile intermediate-ca --kty EC --ca certificates/enrollment/root/root.crt --ca-key certificates/enrollment/root/root.key --no-password --insecure --not-after 43800h --san intermediate.ledger.gopay
-step certificate bundle certificates/enrollment/intermediate/ca.crt certificates/enrollment/root/root.crt certificates/enrollment/intermediate/fullchain.crt
+sudo step certificate create intermediate-ledger-gopay-ca /etc/secrets/gopay/ca/intermediate-cert.pem /etc/secrets/gopay/ca/intermediate-key.pem --profile intermediate-ca --kty EC --ca /etc/secrets/gopay/ca/root-cert.pem --ca-key /etc/secrets/gopay/ca/root-key.pem --no-password --insecure --not-after 43800h --san intermediate.enrollment.gopay.co.id
+sudo step certificate bundle /etc/secrets/gopay/ca/intermediate-cert.pem /etc/secrets/gopay/ca/root-cert.pem /etc/secrets/gopay/ca/intermediate-bundle.pem
 ```
 
 Create TLS Intermediate CA
 ```shell
-step certificate create intermediate-ledger-tls-gopay-ca certificates/tls/intermediate/ca.crt certificates/tls/intermediate/ca.key --profile intermediate-ca --kty EC --ca certificates/tls/root/root.crt --ca-key certificates/tls/root/root.key --no-password --insecure --not-after 43800h --san intermediate.ledger.tls.gopay
-step certificate bundle certificates/tls/intermediate/ca.crt certificates/tls/root/root.crt certificates/tls/intermediate/fullchain.crt
+sudo step certificate create intermediate-ledger-tls-gopay-ca /etc/secrets/gopay/tlsca/intermediate-cert.pem /etc/secrets/gopay/tlsca/intermediate-key.pem --profile intermediate-ca --kty EC --ca /etc/secrets/gopay/tlsca/root-cert.pem --ca-key /etc/secrets/gopay/tlsca/root-key.pem --no-password --insecure --not-after 43800h --san intermediate.tls.gopay.co.id
+sudo step certificate bundle /etc/secrets/gopay/tlsca/intermediate-cert.pem /etc/secrets/gopay/tlsca/root-cert.pem /etc/secrets/gopay/tlsca/intermediate-bundle.pem
 ```
+
+starting for now, let's not do anything with this certificate keys, we must not do any operations to certificate keys.
 
 ### Client CA
 we need to create client for TLS CA, this client certificate will be used to contact to enrollment Fabric CA service as well as TLS Fabric CA service for futher generation of certificate.
 
 create client certificate directory
 ```shell
-mkdir -p certificates/tls/client/tls-service/
-mkdir -p certificates/tls/client/enrollment-service/
+sudo mkdir -p /etc/secrets/gopay/services/tls-fabric-ca-server/tls/
+sudo mkdir -p /etc/secrets/gopay/services/enrollment-fabric-ca-server/tls/
 ```
 
 ```shell
-step certificate create tls-service-ledger-tls-gopay-ca certificates/tls/client/tls-service/tls.crt certificates/tls/client/tls-service/tls.key --profile leaf --ca certificates/tls/intermediate/ca.crt --ca-key certificates/tls/intermediate/ca.key --kty EC --no-password --insecure --not-after 47600h --san tls-service.ledger.tls.gopay --san 10.250.251.10 --san localhost --san 127.0.0.1
-step certificate bundle certificates/tls/client/tls-service/tls.crt certificates/tls/intermediate/ca.crt certificates/tls/client/tls-service/fullchain.crt
+sudo step certificate create tls-fabric-ca-server-ledger-tls-gopay-ca /etc/secrets/gopay/services/tls-fabric-ca-server/tls/cert.pem /etc/secrets/gopay/services/tls-fabric-ca-server/tls/key.pem --profile leaf --ca /etc/secrets/gopay/tlsca/intermediate-cert.pem --ca-key /etc/secrets/gopay/tlsca/intermediate-key.pem --kty EC --no-password --insecure --not-after 47600h --san ca-server.tls.gopay.co.id --san 10.250.251.10 --san localhost --san 127.0.0.1
+sudo step certificate bundle /etc/secrets/gopay/services/tls-fabric-ca-server/tls/cert.pem /etc/secrets/gopay/tlsca/intermediate-cert.pem /etc/secrets/gopay/services/tls-fabric-ca-server/tls/bundle.pem
 
-step certificate create enrollment-service-ledger-tls-gopay-ca certificates/tls/client/enrollment-service/enrollment.crt certificates/tls/client/enrollment-service/enrollment.key --profile leaf --ca certificates/tls/intermediate/ca.crt --ca-key certificates/tls/intermediate/ca.key --kty EC --no-password --insecure --not-after 47600h --san enrollment-service.ledger.tls.gopay --san 10.250.251.10 --san localhost --san 127.0.0.1
-step certificate bundle certificates/tls/client/enrollment-service/enrollment.crt certificates/tls/intermediate/ca.crt certificates/tls/client/enrollment-service/fullchain.crt
+sudo step certificate create enrollment-fabric-ca-server-ledger-tls-gopay-ca /etc/secrets/gopay/services/enrollment-fabric-ca-server/tls/cert.pem /etc/secrets/gopay/services/enrollment-fabric-ca-server/tls/key.pem --profile leaf --ca /etc/secrets/gopay/tlsca/intermediate-cert.pem --ca-key /etc/secrets/gopay/tlsca/intermediate-key.pem --kty EC --no-password --insecure --not-after 47600h --san ca-server.enrollment.gopay.co.id --san 10.250.251.10 --san localhost --san 127.0.0.1
+sudo step certificate bundle /etc/secrets/gopay/services/enrollment-fabric-ca-server/tls/cert.pem /etc/secrets/gopay/tlsca/intermediate-cert.pem /etc/secrets/gopay/services/enrollment-fabric-ca-server/tls/bundle.pem
 ```
 
-If we check we will have this all certificates
-```shell
-tree certificates/
-certificates/
-├── enrollment
-│   ├── intermediate
-│   │   ├── ca.crt
-│   │   ├── ca.key
-│   │   └── fullchain.crt
-│   └── root
-│       ├── root.crt
-│       └── root.key
-└── tls
-    ├── client
-    │   ├── enrollment-service
-    │   │   ├── enrollment.crt
-    │   │   ├── enrollment.key
-    │   │   └── fullchain.crt
-    │   └── tls-service
-    │       └── fullchain.crt
-    │       ├── tls.crt
-    │       └── tls.key
-    ├── intermediate
-    │   ├── ca.crt
-    │   ├── ca.key
-    │   └── fullchain.crt
-    └── root
-        ├── root.crt
-        └── root.key
+### Validate Root, Intermediate, and Client Certificate
+If we check, we will have this certificates
+```
+sudo tree /etc/secrets/
+/etc/secrets/
+└── gopay
+    ├── ca
+    │   ├── intermediate-bundle.pem
+    │   ├── intermediate-cert.pem
+    │   ├── intermediate-key.pem
+    │   ├── root-cert.pem
+    │   └── root-key.pem
+    ├── services
+    │   ├── enrollment-fabric-ca-server
+    │   │   └── tls
+    │   │       ├── bundle.pem
+    │   │       ├── cert.pem
+    │   │       └── key.pem
+    │   └── tls-fabric-ca-server
+    │       └── tls
+    │           ├── bundle.pem
+    │           ├── cert.pem
+    │           └── key.pem
+    └── tlsca
+        ├── intermediate-bundle.pem
+        ├── intermediate-cert.pem
+        ├── intermediate-key.pem
+        ├── root-cert.pem
+        └── root-key.pem
+```
+starting for now, let's not do anything with this certificate keys, we must not do any operations to certificate keys.
+
+### Organizations MSP
+create organizations MSP directory
+```
+mkdir -p organizations/PeerOrganizations/gopay/msp/cacerts/
+mkdir -p organizations/PeerOrganizations/gopay/msp/tlscacerts/
+mkdir -p organizations/PeerOrganizations/gopay/msp/intermediatecerts/
+mkdir -p organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/
 ```
 
-Copy enrollment & TLS intermediate fullchain to each orderer and peer nodes
+copy the certificate
 ```
-ssh vagrant@10.250.251.20 "mkdir -p ~/certificates/enrollment/intermediate"
-ssh vagrant@10.250.251.20 "mkdir -p ~/certificates/tls/intermediate"
+sudo cp /etc/secrets/gopay/ca/root-cert.pem organizations/PeerOrganizations/gopay/msp/cacerts/
+sudo cp /etc/secrets/gopay/ca/intermediate-cert.pem organizations/PeerOrganizations/gopay/msp/intermediatecerts/
+sudo cp /etc/secrets/gopay/tlsca/root-cert.pem organizations/PeerOrganizations/gopay/msp/tlscacerts/
+sudo cp /etc/secrets/gopay/tlsca/intermediate-cert.pem organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/
+```
 
-scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.251.20:~/certificates/enrollment/intermediate/
-scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.251.20:~/certificates/tls/intermediate/
+change the owners
+```
+sudo chown -R vagrant:vagrant organizations/PeerOrganizations/gopay/
+chmod -R 744 organizations/PeerOrganizations/gopay/
+```
 
-ssh vagrant@10.250.251.21 "mkdir -p ~/certificates/enrollment/intermediate"
-ssh vagrant@10.250.251.21 "mkdir -p ~/certificates/tls/intermediate"
+setup NodeOU
+```
+cat <<EOF | tee organizations/PeerOrganizations/gopay/msp/config.yaml
+NodeOUs:
+ Enable: true
+ ClientOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: client
+ PeerOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: peer
+ AdminOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: admin
+ OrdererOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: orderer
+EOF
+```
 
-scp certificates/enrollment/intermediate/fullchain.crt vagrant@10.250.251.21:~/certificates/enrollment/intermediate/
-scp certificates/tls/intermediate/fullchain.crt vagrant@10.250.251.21:~/certificates/tls/intermediate/
+If we check, we will have this certificates
+```
+tree organizations/
+organizations/
+└── PeerOrganizations
+    └── gopay
+        └── msp
+            ├── cacerts
+            │   └── root-cert.pem
+            ├── config.yaml
+            ├── intermediatecerts
+            │   └── intermediate-cert.pem
+            ├── tlscacerts
+            │   └── root-cert.pem
+            └── tlsintermediatecerts
+                └── intermediate-cert.pem
+```
+
+Copy enrollment & TLS intermediate fullchain to each peer nodes
+```
+ssh vagrant@10.250.251.20 "mkdir -p ~/organizations/PeerOrganizations/gopay/"
+scp -r organizations/PeerOrganizations/gopay/msp vagrant@10.250.251.20:~/organizations/PeerOrganizations/gopay/
+
+ssh vagrant@10.250.251.21 "mkdir -p ~/organizations/PeerOrganizations/gopay/"
+scp -r organizations/PeerOrganizations/gopay/msp vagrant@10.250.251.21:~/organizations/PeerOrganizations/gopay/
 ```

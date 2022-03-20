@@ -38,21 +38,12 @@ sudo docker-compose --file docker-compose/enrollment/docker-compose.yaml up --bu
 ### Setup Fabric CA
 create config directory
 ```shell
-sudo mkdir -p /etc/hyperledger/enrollment-fabric-ca-server
-```
-
-copy the needed certificate to the directory
-```
-sudo cp certificates/enrollment/intermediate/ca.crt /etc/hyperledger/enrollment-fabric-ca-server/
-sudo cp certificates/enrollment/intermediate/ca.key /etc/hyperledger/enrollment-fabric-ca-server/
-sudo cp certificates/enrollment/intermediate/fullchain.crt /etc/hyperledger/enrollment-fabric-ca-server/
-sudo cp certificates/tls/client/enrollment-service/enrollment.crt /etc/hyperledger/enrollment-fabric-ca-server/tls.crt
-sudo cp certificates/tls/client/enrollment-service/enrollment.key /etc/hyperledger/enrollment-fabric-ca-server/tls.key
+sudo mkdir -p /etc/hyperledger/enrollment-fabric-ca
 ```
 
 create TLS fabric CA configuration
 ```shell
-cat <<EOF | sudo tee /etc/hyperledger/enrollment-fabric-ca-server/fabric-ca-server-config.yaml
+cat <<EOF | sudo tee /etc/hyperledger/enrollment-fabric-ca/fabric-ca-server-config.yaml
 # Service definition for Hyperledger fabric-ca server
 
 version: 1.5.2
@@ -68,16 +59,16 @@ crlsizelimit: 512000
 
 tls:
   enabled: true
-  certfile: /etc/hyperledger/enrollment-fabric-ca-server/tls.crt
-  keyfile: /etc/hyperledger/enrollment-fabric-ca-server/tls.key
+  keyfile: /etc/secrets/dana/services/enrollment-fabric-ca-server/tls/key.pem
+  certfile: /etc/secrets/dana/services/enrollment-fabric-ca-server/tls/cert.pem
   clientauth:
     type: NoClientCert
 
 ca:
-  name: dana
-  keyfile: /etc/hyperledger/enrollment-fabric-ca-server/ca.key
-  certfile: /etc/hyperledger/enrollment-fabric-ca-server/ca.crt
-  chainfile: /etc/hyperledger/enrollment-fabric-ca-server/fullchain.crt
+  name: intermediate.enrollment.dana.id
+  keyfile: /etc/secrets/dana/ca/intermediate-key.pem
+  certfile: /etc/secrets/dana/ca/intermediate-cert.pem
+  chainfile: /etc/secrets/dana/ca/intermediate-bundle.pem
   reenrollIgnoreCertExpiry: false
 
 crl:
@@ -87,8 +78,8 @@ registry:
   maxenrollments: -1
 
   identities:
-     - name: admin@dana
-       pass: adminpasswd
+     - name: root@enrollment.dana.id
+       pass: root-password
        type: client
        affiliation: ""
        attrs:
@@ -222,9 +213,9 @@ After=network-online.target
 [Service]
 Type=simple
 Restart=on-failure
-Environment=FABRIC_CA_HOME=/etc/hyperledger/enrollment-fabric-ca-server
-Environment=FABRIC_CA_SERVER_HOME=/etc/hyperledger/enrollment-fabric-ca-server
-Environment=CA_CFG_PATH=/etc/hyperledger/enrollment-fabric-ca-server
+Environment=FABRIC_CA_HOME=/etc/hyperledger/enrollment-fabric-ca
+Environment=FABRIC_CA_SERVER_HOME=/etc/hyperledger/enrollment-fabric-ca
+Environment=CA_CFG_PATH=/etc/hyperledger/enrollment-fabric-ca
 ExecStart=/usr/local/bin/fabric-ca-server start
 
 [Install]
@@ -240,58 +231,76 @@ sudo systemctl status enrollment-fabric-ca-server.service
 ```
 
 ### Enrolling Admin Users
-By default, Encrollment Fabric CA will create an admin identity
+By default, TLS Fabric CA will create an root identity
 ```
-- name: admin@dana
-  pass: adminpasswd
+- name: root@enrollment.dana.id
+  pass: root-password
 ```
-This admin identity is used for creating another identity for orderer and peer nodes. In order to create another identity, we need to first collect the certificate for this default identity
+This root identity is used for creating another identity for admin, client, and peer nodes. In order to create another identity, we need to first collect the certificate from this root identity
 
-create directory for admin identity
+create directory for root identity
 ```
-mkdir -p identity/enrollment/admin/
-mkdir -p identity/enrollment/admin/msp
-```
-
-copy TLS CA chain
-```
-cp certificates/tls/intermediate/fullchain.crt identity/enrollment/admin/tls-fullchain.crt
+mkdir -p organizations/PeerOrganizations/dana/users/root@enrollment.dana.id/tls
 ```
 
-get admin identity certificate
+get root identity certificate
 ```
-fabric-ca-client enroll -d -u https://admin@dana:adminpasswd@10.250.252.10:7055 --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client enroll -d -u https://root@enrollment.dana.id:root-password@10.250.252.10:7055 --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@enrollment.dana.id/tls
 ```
 
 if we check, we will find
 ```
-tree identity/
-identity/
-├── enrollment
-│   └── admin
-│       ├── msp
-│       │   ├── IssuerPublicKey
-│       │   ├── IssuerRevocationPublicKey
-│       │   ├── cacerts
-│       │   ├── keystore
-│       │   │   └── a8104a30f13ecfd328d042babf1230f22ebf9acb9f65e9b0f18f78c3b680ca5b_sk
-│       │   ├── signcerts
-│       │   │   └── cert.pem
-│       │   ├── tlscacerts
-│       │   │   └── tls-10-250-252-10-7055.pem
-│       │   ├── tlsintermediatecerts
-│       │   │   └── tls-10-250-252-10-7055.pem
-│       │   └── user
-│       └── tls-fullchain.crt
+tree organizations
+organizations
+└── PeerOrganizations
+    └── dana
+        ├── msp
+        │   ├── cacerts
+        │   │   └── root-cert.pem
+        │   ├── intermediatecerts
+        │   │   └── intermediate-cert.pem
+        │   ├── tlscacerts
+        │   │   └── root-cert.pem
+        │   └── tlsintermediatecerts
+        │       └── intermediate-cert.pem
+        └── users
+            ├── root@enrollment.dana.id
+            │   └── tls
+            │       ├── IssuerPublicKey
+            │       ├── IssuerRevocationPublicKey
+            │       ├── cacerts
+            │       ├── keystore
+            │       │   └── 2971427121fd1218058ddbd7e24312314498702b49dc7edeecc68984e8d9a734_sk
+            │       ├── signcerts
+            │       │   └── cert.pem
+            │       ├── tlscacerts
+            │       │   └── tls-10-250-252-10-7055.pem
+            │       ├── tlsintermediatecerts
+            │       │   └── tls-10-250-252-10-7055.pem
+            │       └── user
+            └── root@tls.dana.id
+                └── tls
+                    ├── IssuerPublicKey
+                    ├── IssuerRevocationPublicKey
+                    ├── cacerts
+                    ├── keystore
+                    │   └── dff944ad9296781b2bc9d65d06f4b0e7bc7dd88c85ac4d8cadc5d7ea24436fbc_sk
+                    ├── signcerts
+                    │   └── cert.pem
+                    ├── tlscacerts
+                    │   └── tls-10-250-252-10-7054.pem
+                    ├── tlsintermediatecerts
+                    │   └── tls-10-250-252-10-7054.pem
+                    └── user
 ```
 
 ### Creating Identity
-now, let's use this to register another identity for peers
+now, let's use this to register another identity for peer. We will using this when creating peer service
 ```
-fabric-ca-client register -d --id.name peer0@dana --id.secret peer0-dana-password -u https://10.250.252.10:7055  --id.type peer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
-fabric-ca-client register -d --id.name peer1@dana --id.secret peer1-dana-password -u https://10.250.252.10:7055  --id.type peer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name peer0@enrollment.dana.id --id.secret peer0-password -u https://10.250.252.10:7055  --id.type peer --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@enrollment.dana.id/tls
+fabric-ca-client register -d --id.name peer1@enrollment.dana.id --id.secret peer1-password -u https://10.250.252.10:7055  --id.type peer --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@enrollment.dana.id/tls
 
-fabric-ca-client register -d --id.name administrator@dana --id.secret administrator-dana-password -u https://10.250.252.10:7055  --id.type admin --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name administrator@enrollment.dana.id --id.secret administrator-password -u https://10.250.252.10:7055  --id.type admin --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@enrollment.dana.id/tls
 
-fabric-ca-client register -d --id.name user01@dana --id.secret user01-dana-password -u https://10.250.252.10:7055  --id.type user --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name user01@enrollment.dana.id --id.secret user01-password -u https://10.250.252.10:7055  --id.type user --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@enrollment.dana.id/tls
 ```

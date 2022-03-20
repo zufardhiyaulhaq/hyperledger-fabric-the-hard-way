@@ -19,3 +19,10 @@ This lab required you to have understanding & installed system of Vagrant & Virt
 - [Setup Channel](docs/07-setup-channel.md)
 - [Setup & Testing Chaincode](docs/08-setup-chaincode.md)
 
+## Architecture
+There are 3 organizations in this tutorial, all of this organizations will join channel called QRIS.
+- BI (Bank Indonesia), will host 3 Orderer services
+- GoPay, will host 2 peer services
+- DANA, will host 2 peer services
+
+![High Level Architecture](docs/assets/images/hyperledger-highlevelinfra.drawio.png?raw=true "High Level Architecture")

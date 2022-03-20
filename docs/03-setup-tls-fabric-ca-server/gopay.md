@@ -239,12 +239,12 @@ This root identity is used for creating another identity for admin, client, and 
 
 create directory for root identity
 ```
-mkdir -p organizations/PeerOrganizations/gopay/users/root@tls.gopay.co.id/msp
+mkdir -p organizations/PeerOrganizations/gopay/users/root@tls.gopay.co.id/tls
 ```
 
 get root identity certificate
 ```
-fabric-ca-client enroll -d -u https://root@tls.gopay.co.id:root-password@10.250.251.10:7054 --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=gopay,ST=jakarta --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@tls.gopay.co.id/msp
+fabric-ca-client enroll -d -u https://root@tls.gopay.co.id:root-password@10.250.251.10:7054 --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=gopay,ST=jakarta --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@tls.gopay.co.id/tls
 ```
 
 if we check, we will find
@@ -264,12 +264,12 @@ organizations
         │       └── intermediate-cert.pem
         └── users
             └── root@tls.gopay.co.id
-                └── msp
+                └── tls
                     ├── IssuerPublicKey
                     ├── IssuerRevocationPublicKey
                     ├── cacerts
                     ├── keystore
-                    │   └── 96441b4bc9256377b3d1cb7762f2d5a590b815c41cc873ddc8266b46a0b43c24_sk
+                    │   └── d96985d42f9bfd300c32431b2dfefca8b86537a1d2530d3ce45093c6caab563b_sk
                     ├── signcerts
                     │   └── cert.pem
                     ├── tlscacerts
@@ -282,6 +282,6 @@ organizations
 ### Creating Identity
 now, let's use this to register another identity for peer. We will using this when creating peer service
 ```
-fabric-ca-client register -d --id.name peer0@tls.gopay.co.id --id.secret peer0-password -u https://10.250.251.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@tls.gopay.co.id/msp
-fabric-ca-client register -d --id.name peer1@tls.gopay.co.id --id.secret peer1-password -u https://10.250.251.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@tls.gopay.co.id/msp
+fabric-ca-client register -d --id.name peer0@tls.gopay.co.id --id.secret peer0-password -u https://10.250.251.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@tls.gopay.co.id/tls
+fabric-ca-client register -d --id.name peer1@tls.gopay.co.id --id.secret peer1-password -u https://10.250.251.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@tls.gopay.co.id/tls
 ```

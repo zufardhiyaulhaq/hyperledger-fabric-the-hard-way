@@ -239,12 +239,12 @@ This root identity is used for creating another identity for admin, client, and 
 
 create directory for root identity
 ```
-mkdir -p organizations/PeerOrganizations/dana/users/root@tls.dana.id/msp
+mkdir -p organizations/PeerOrganizations/dana/users/root@tls.dana.id/tls
 ```
 
 get root identity certificate
 ```
-fabric-ca-client enroll -d -u https://root@tls.dana.id:root-password@10.250.252.10:7054 --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/msp
+fabric-ca-client enroll -d -u https://root@tls.dana.id:root-password@10.250.252.10:7054 --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/tls
 ```
 
 if we check, we will find
@@ -264,12 +264,12 @@ organizations
         │       └── intermediate-cert.pem
         └── users
             └── root@tls.dana.id
-                └── msp
+                └── tls
                     ├── IssuerPublicKey
                     ├── IssuerRevocationPublicKey
                     ├── cacerts
                     ├── keystore
-                    │   └── 485e21f0084ad1647290f025e287ee82170a9e19c020cccfbd47bf952d22b076_sk
+                    │   └── dff944ad9296781b2bc9d65d06f4b0e7bc7dd88c85ac4d8cadc5d7ea24436fbc_sk
                     ├── signcerts
                     │   └── cert.pem
                     ├── tlscacerts
@@ -282,6 +282,6 @@ organizations
 ### Creating Identity
 now, let's use this to register another identity for peer. We will using this when creating peer service
 ```
-fabric-ca-client register -d --id.name peer0@tls.dana.id --id.secret peer0-password -u https://10.250.252.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/msp
-fabric-ca-client register -d --id.name peer1@tls.dana.id --id.secret peer1-password -u https://10.250.252.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/msp
+fabric-ca-client register -d --id.name peer0@tls.dana.id --id.secret peer0-password -u https://10.250.252.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/tls
+fabric-ca-client register -d --id.name peer1@tls.dana.id --id.secret peer1-password -u https://10.250.252.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/PeerOrganizations/dana/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/dana/users/root@tls.dana.id/tls
 ```

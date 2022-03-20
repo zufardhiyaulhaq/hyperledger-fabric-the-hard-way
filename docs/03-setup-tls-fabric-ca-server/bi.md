@@ -239,18 +239,18 @@ This root identity is used for creating another identity for admin, client, and 
 
 create directory for root identity
 ```
-mkdir -p organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
+mkdir -p organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/tls
 ```
 
 get root identity certificate
 ```
-fabric-ca-client enroll -d -u https://root@tls.bi.go.id:root-password@10.250.250.10:7054 --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
+fabric-ca-client enroll -d -u https://root@tls.bi.go.id:root-password@10.250.250.10:7054 --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/tls
 ```
 
 if we check, we will find
 ```
 tree organizations
-organizations/
+organizations
 └── OrdererOrganizations
     └── bi
         ├── msp
@@ -264,12 +264,12 @@ organizations/
         │       └── intermediate-cert.pem
         └── users
             └── root@tls.bi.go.id
-                └── msp
+                └── tls
                     ├── IssuerPublicKey
                     ├── IssuerRevocationPublicKey
                     ├── cacerts
                     ├── keystore
-                    │   └── 19b80566799d5e7a97a9ec3024c6c7bca90a35cb5d48af168dca79a248e585c0_sk
+                    │   └── 8730d406f1662b8292e1fb76c4cd0a1ad8d2fbb10aeb10aa0de2c466d0883cc3_sk
                     ├── signcerts
                     │   └── cert.pem
                     ├── tlscacerts
@@ -282,7 +282,7 @@ organizations/
 ### Creating Identity
 now, let's use this to register another identity for orderer. We will using this when creating orderer service
 ```
-fabric-ca-client register -d --id.name orderer0@tls.bi.go.id --id.secret orderer0-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
-fabric-ca-client register -d --id.name orderer1@tls.bi.go.id --id.secret orderer1-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
-fabric-ca-client register -d --id.name orderer2@tls.bi.go.id --id.secret orderer2-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/msp
+fabric-ca-client register -d --id.name orderer0@tls.bi.go.id --id.secret orderer0-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/tls
+fabric-ca-client register -d --id.name orderer1@tls.bi.go.id --id.secret orderer1-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/tls
+fabric-ca-client register -d --id.name orderer2@tls.bi.go.id --id.secret orderer2-password -u https://10.250.250.10:7054  --id.type client --tls.certfiles ${HOME}/organizations/OrdererOrganizations/bi/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/OrdererOrganizations/bi/users/root@tls.bi.go.id/tls
 ```

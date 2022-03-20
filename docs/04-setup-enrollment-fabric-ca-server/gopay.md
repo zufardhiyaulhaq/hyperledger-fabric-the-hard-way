@@ -38,21 +38,12 @@ sudo docker-compose --file docker-compose/enrollment/docker-compose.yaml up --bu
 ### Setup Fabric CA
 create config directory
 ```shell
-sudo mkdir -p /etc/hyperledger/enrollment-fabric-ca-server
-```
-
-copy the needed certificate to the directory
-```
-sudo cp certificates/enrollment/intermediate/ca.crt /etc/hyperledger/enrollment-fabric-ca-server/
-sudo cp certificates/enrollment/intermediate/ca.key /etc/hyperledger/enrollment-fabric-ca-server/
-sudo cp certificates/enrollment/intermediate/fullchain.crt /etc/hyperledger/enrollment-fabric-ca-server/
-sudo cp certificates/tls/client/enrollment-service/enrollment.crt /etc/hyperledger/enrollment-fabric-ca-server/tls.crt
-sudo cp certificates/tls/client/enrollment-service/enrollment.key /etc/hyperledger/enrollment-fabric-ca-server/tls.key
+sudo mkdir -p /etc/hyperledger/enrollment-fabric-ca
 ```
 
 create TLS fabric CA configuration
 ```shell
-cat <<EOF | sudo tee /etc/hyperledger/enrollment-fabric-ca-server/fabric-ca-server-config.yaml
+cat <<EOF | sudo tee /etc/hyperledger/enrollment-fabric-ca/fabric-ca-server-config.yaml
 # Service definition for Hyperledger fabric-ca server
 
 version: 1.5.2
@@ -68,16 +59,16 @@ crlsizelimit: 512000
 
 tls:
   enabled: true
-  certfile: /etc/hyperledger/enrollment-fabric-ca-server/tls.crt
-  keyfile: /etc/hyperledger/enrollment-fabric-ca-server/tls.key
+  keyfile: /etc/secrets/gopay/services/enrollment-fabric-ca-server/tls/key.pem
+  certfile: /etc/secrets/gopay/services/enrollment-fabric-ca-server/tls/cert.pem
   clientauth:
     type: NoClientCert
 
 ca:
-  name: gopay
-  keyfile: /etc/hyperledger/enrollment-fabric-ca-server/ca.key
-  certfile: /etc/hyperledger/enrollment-fabric-ca-server/ca.crt
-  chainfile: /etc/hyperledger/enrollment-fabric-ca-server/fullchain.crt
+  name: intermediate.enrollment.gopay.co.id
+  keyfile: /etc/secrets/gopay/ca/intermediate-key.pem
+  certfile: /etc/secrets/gopay/ca/intermediate-cert.pem
+  chainfile: /etc/secrets/gopay/ca/intermediate-bundle.pem
   reenrollIgnoreCertExpiry: false
 
 crl:
@@ -87,8 +78,8 @@ registry:
   maxenrollments: -1
 
   identities:
-     - name: admin@gopay
-       pass: adminpasswd
+     - name: root@enrollment.gopay.co.id
+       pass: root-password
        type: client
        affiliation: ""
        attrs:
@@ -222,9 +213,9 @@ After=network-online.target
 [Service]
 Type=simple
 Restart=on-failure
-Environment=FABRIC_CA_HOME=/etc/hyperledger/enrollment-fabric-ca-server
-Environment=FABRIC_CA_SERVER_HOME=/etc/hyperledger/enrollment-fabric-ca-server
-Environment=CA_CFG_PATH=/etc/hyperledger/enrollment-fabric-ca-server
+Environment=FABRIC_CA_HOME=/etc/hyperledger/enrollment-fabric-ca
+Environment=FABRIC_CA_SERVER_HOME=/etc/hyperledger/enrollment-fabric-ca
+Environment=CA_CFG_PATH=/etc/hyperledger/enrollment-fabric-ca
 ExecStart=/usr/local/bin/fabric-ca-server start
 
 [Install]
@@ -240,58 +231,76 @@ sudo systemctl status enrollment-fabric-ca-server.service
 ```
 
 ### Enrolling Admin Users
-By default, Encrollment Fabric CA will create an admin identity
+By default, TLS Fabric CA will create an root identity
 ```
-- name: admin@gopay
-  pass: adminpasswd
+- name: root@enrollment.gopay.co.id
+  pass: root-password
 ```
-This admin identity is used for creating another identity for orderer and peer nodes. In order to create another identity, we need to first collect the certificate for this default identity
+This root identity is used for creating another identity for admin, client, and peer nodes. In order to create another identity, we need to first collect the certificate from this root identity
 
-create directory for admin identity
+create directory for root identity
 ```
-mkdir -p identity/enrollment/admin/
-mkdir -p identity/enrollment/admin/msp
-```
-
-copy TLS CA chain
-```
-cp certificates/tls/intermediate/fullchain.crt identity/enrollment/admin/tls-fullchain.crt
+mkdir -p organizations/PeerOrganizations/gopay/users/root@enrollment.gopay.co.id/tls
 ```
 
-get admin identity certificate
+get root identity certificate
 ```
-fabric-ca-client enroll -d -u https://admin@gopay:adminpasswd@10.250.251.10:7055 --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --enrollment.profile tls --csr.hosts 'admin' --csr.names C=id,O=gopay,ST=jakarta --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client enroll -d -u https://root@enrollment.gopay.co.id:root-password@10.250.251.10:7055 --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --enrollment.profile tls --csr.hosts 'root' --csr.names C=id,O=gopay,ST=jakarta --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@enrollment.gopay.co.id/tls
 ```
 
 if we check, we will find
 ```
-tree identity/
-identity/
-├── enrollment
-│   └── admin
-│       ├── msp
-│       │   ├── IssuerPublicKey
-│       │   ├── IssuerRevocationPublicKey
-│       │   ├── cacerts
-│       │   ├── keystore
-│       │   │   └── a1b0184cbf48a30c83d961d419abeb717ab9d67d2136a5db518574256a23267c_sk
-│       │   ├── signcerts
-│       │   │   └── cert.pem
-│       │   ├── tlscacerts
-│       │   │   └── tls-10-250-251-10-7055.pem
-│       │   ├── tlsintermediatecerts
-│       │   │   └── tls-10-250-251-10-7055.pem
-│       │   └── user
-│       └── tls-fullchain.crt
+tree organizations
+organizations
+└── PeerOrganizations
+    └── gopay
+        ├── msp
+        │   ├── cacerts
+        │   │   └── root-cert.pem
+        │   ├── intermediatecerts
+        │   │   └── intermediate-cert.pem
+        │   ├── tlscacerts
+        │   │   └── root-cert.pem
+        │   └── tlsintermediatecerts
+        │       └── intermediate-cert.pem
+        └── users
+            ├── root@enrollment.gopay.co.id
+            │   └── tls
+            │       ├── IssuerPublicKey
+            │       ├── IssuerRevocationPublicKey
+            │       ├── cacerts
+            │       ├── keystore
+            │       │   └── 0223f764cd80bd6ca90f7bc426dcae095e06c3481db2b84fdb45feaa356ae335_sk
+            │       ├── signcerts
+            │       │   └── cert.pem
+            │       ├── tlscacerts
+            │       │   └── tls-10-250-251-10-7055.pem
+            │       ├── tlsintermediatecerts
+            │       │   └── tls-10-250-251-10-7055.pem
+            │       └── user
+            └── root@tls.gopay.co.id
+                └── tls
+                    ├── IssuerPublicKey
+                    ├── IssuerRevocationPublicKey
+                    ├── cacerts
+                    ├── keystore
+                    │   └── d96985d42f9bfd300c32431b2dfefca8b86537a1d2530d3ce45093c6caab563b_sk
+                    ├── signcerts
+                    │   └── cert.pem
+                    ├── tlscacerts
+                    │   └── tls-10-250-251-10-7054.pem
+                    ├── tlsintermediatecerts
+                    │   └── tls-10-250-251-10-7054.pem
+                    └── user
 ```
 
 ### Creating Identity
-now, let's use this to register another identity for peers
+now, let's use this to register another identity for peer. We will using this when creating peer service
 ```
-fabric-ca-client register -d --id.name peer0@gopay --id.secret peer0-gopay-password -u https://10.250.251.10:7055  --id.type peer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
-fabric-ca-client register -d --id.name peer1@gopay --id.secret peer1-gopay-password -u https://10.250.251.10:7055  --id.type peer --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name peer0@enrollment.gopay.co.id --id.secret peer0-password -u https://10.250.251.10:7055  --id.type peer --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@enrollment.gopay.co.id/tls
+fabric-ca-client register -d --id.name peer1@enrollment.gopay.co.id --id.secret peer1-password -u https://10.250.251.10:7055  --id.type peer --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@enrollment.gopay.co.id/tls
 
-fabric-ca-client register -d --id.name administrator@gopay --id.secret administrator-gopay-password -u https://10.250.251.10:7055  --id.type admin --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name administrator@enrollment.gopay.co.id --id.secret administrator-password -u https://10.250.251.10:7055  --id.type admin --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@enrollment.gopay.co.id/tls
 
-fabric-ca-client register -d --id.name user01@gopay --id.secret user01-gopay-password -u https://10.250.251.10:7055  --id.type user --tls.certfiles ${HOME}/identity/enrollment/admin/tls-fullchain.crt --mspdir ${HOME}/identity/enrollment/admin/msp
+fabric-ca-client register -d --id.name user01@enrollment.gopay.co.id --id.secret user01-password -u https://10.250.251.10:7055  --id.type user --tls.certfiles ${HOME}/organizations/PeerOrganizations/gopay/msp/tlsintermediatecerts/intermediate-cert.pem --mspdir ${HOME}/organizations/PeerOrganizations/gopay/users/root@enrollment.gopay.co.id/tls
 ```

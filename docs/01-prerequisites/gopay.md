@@ -93,6 +93,8 @@ export GOROOT_BOOTSTRAP=$GOROOT
 
 gvm install go1.16.3
 gvm use go1.16.3
+
+exit
 ```
 
 install Docker, this is used to build the chaincode in the peer server

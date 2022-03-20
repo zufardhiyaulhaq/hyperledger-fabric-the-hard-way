@@ -110,21 +110,42 @@ sudo chown -R vagrant:vagrant organizations/PeerOrganizations/dana/
 chmod -R 744 organizations/PeerOrganizations/dana/
 ```
 
+setup NodeOU
+```
+cat <<EOF | tee organizations/PeerOrganizations/dana/msp/config.yaml
+NodeOUs:
+ Enable: true
+ ClientOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: client
+ PeerOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: peer
+ AdminOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: admin
+ OrdererOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: orderer
+EOF
+```
+
 If we check, we will have this certificates
 ```
 tree organizations/
 organizations/
 └── PeerOrganizations
     └── dana
-        └── msp
-            ├── cacerts
-            │   └── root-cert.pem
-            ├── intermediatecerts
-            │   └── intermediate-cert.pem
-            ├── tlscacerts
-            │   └── root-cert.pem
-            └── tlsintermediatecerts
-                └── intermediate-cert.pem
+        ├── msp
+        │   ├── cacerts
+        │   │   └── root-cert.pem
+        │   ├── config.yaml
+        │   ├── intermediatecerts
+        │   │   └── intermediate-cert.pem
+        │   ├── tlscacerts
+        │   │   └── root-cert.pem
+        │   └── tlsintermediatecerts
+        │       └── intermediate-cert.pem
 ```
 
 Copy enrollment & TLS intermediate fullchain to each peer nodes

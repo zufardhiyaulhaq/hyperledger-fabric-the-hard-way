@@ -8,6 +8,9 @@ Create directory for msp & tls certificate
 ```
 sudo mkdir -p /etc/hyperledger/peer/organizations/PeerOrganizations/dana/peers/peer0/tls
 sudo mkdir -p /etc/hyperledger/peer/organizations/PeerOrganizations/dana/peers/peer0/msp
+
+sudo chmod 755 /etc/hyperledger/peer/organizations/PeerOrganizations/dana/peers/peer0/tls
+sudo chmod 755 /etc/hyperledger/peer/organizations/PeerOrganizations/dana/peers/peer0/msp
 ```
 
 create directory for peers

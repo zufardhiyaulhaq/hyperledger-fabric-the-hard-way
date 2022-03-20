@@ -8,6 +8,9 @@ Create directory for msp & tls certificate directory for orderer0 node
 ```
 sudo mkdir -p /etc/hyperledger/orderer/organizations/OrdererOrganizations/bi/orderers/orderer0/tls
 sudo mkdir -p /etc/hyperledger/orderer/organizations/OrdererOrganizations/bi/orderers/orderer0/msp
+
+sudo chmod 755 /etc/hyperledger/orderer/organizations/OrdererOrganizations/bi/orderers/orderer0/tls
+sudo chmod 755 /etc/hyperledger/orderer/organizations/OrdererOrganizations/bi/orderers/orderer0/msp
 ```
 
 create directory for etcdraft

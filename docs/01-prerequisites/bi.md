@@ -24,6 +24,16 @@ rm -rf bin/
 rm -rf hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
 ```
 
+Download Hyperledger binary, this is used to generate channel genesis block
+```
+wget https://github.com/hyperledger/fabric/releases/download/v2.4.3/hyperledger-fabric-linux-amd64-2.4.3.tar.gz
+tar xzvf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
+sudo cp bin/* /usr/local/bin/
+rm -rf bin/
+rm -rf config/
+rm -rf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
+```
+
 install Docker & docker-compose, this is used to run postgresql that is used by Fabric CA server
 ```
 sudo apt-get install \

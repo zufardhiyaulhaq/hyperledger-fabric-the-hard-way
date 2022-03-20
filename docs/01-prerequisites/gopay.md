@@ -92,7 +92,7 @@ gvm use go1.4
 export GOROOT_BOOTSTRAP=$GOROOT
 
 gvm install go1.16.3
-gvm use go1.16.3
+gvm use go1.16.3 --default
 
 exit
 ```

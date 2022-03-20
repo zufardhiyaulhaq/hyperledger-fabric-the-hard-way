@@ -1,5 +1,5 @@
 # Setup channel
-Here is the tricky part, to setup a channel, we need to generate channel genesis block. To generate this channel genesis block, we need to get this configuration for all organizations:
+To setup a channel, we need to generate channel genesis block. To generate this channel genesis block, we need to get this configuration for all organizations:
 - Enrollment Root CA certificate
 - Enrollment Intermediate CA certificate
 - TLS Root CA certificate
@@ -15,62 +15,28 @@ ssh to the nodes
 vagrant ssh bi-ca-server-0
 ```
 
-Download binary
+currently, BI have only orderer organization MSP
 ```
-wget https://github.com/hyperledger/fabric/releases/download/v2.4.3/hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-tar xzvf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
-sudo cp bin/* /usr/local/bin/
-rm -rf bin/
-rm -rf config/
-rm -rf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
+tree organizations
+organizations
+├── OrdererOrganizations
+│   └── bi
+│       ├── msp
+│       │   ├── cacerts
+│       │   │   └── root-cert.pem
+│       │   ├── config.yaml
+│       │   ├── intermediatecerts
+│       │   │   └── intermediate-cert.pem
+│       │   ├── tlscacerts
+│       │   │   └── root-cert.pem
+│       │   └── tlsintermediatecerts
+│       │       └── intermediate-cert.pem
 ```
 
-create directory for each organizations
+create directory for peer organizations
 ```shell
-mkdir -p organizations/bi/msp/cacerts
-mkdir -p organizations/bi/msp/intermediatecerts
-mkdir -p organizations/bi/msp/tlscacerts
-mkdir -p organizations/bi/msp/tlsintermediatecerts
-mkdir -p organizations/bi/msp/admincerts
-
-mkdir -p organizations/bi/orderer/orderer0/tls
-mkdir -p organizations/bi/orderer/orderer1/tls
-mkdir -p organizations/bi/orderer/orderer2/tls
-
-mkdir -p organizations/gopay/msp/cacerts
-mkdir -p organizations/gopay/msp/intermediatecerts
-mkdir -p organizations/gopay/msp/tlscacerts
-mkdir -p organizations/gopay/msp/tlsintermediatecerts
-mkdir -p organizations/gopay/msp/admincerts
-
-mkdir -p organizations/dana/msp/cacerts
-mkdir -p organizations/dana/msp/intermediatecerts
-mkdir -p organizations/dana/msp/tlscacerts
-mkdir -p organizations/dana/msp/tlsintermediatecerts
-mkdir -p organizations/dana/msp/admincerts
-```
-
-get certificate BI
-```shell
-mkdir -p tmp/bi/tls
-mkdir -p tmp/bi/enrollment
-mkdir -p tmp/bi/enrollment-admin
-
-cp certificates/tls/intermediate/fullchain.crt tmp/bi
-
-fabric-ca-client getcainfo -d -u https://admin@bi:adminpasswd@10.250.250.10:7054 --tls.certfiles ${HOME}/tmp/bi/fullchain.crt --mspdir ${HOME}/tmp/bi/tls
-fabric-ca-client getcainfo -d -u https://admin@bi:adminpasswd@10.250.250.10:7055 --tls.certfiles ${HOME}/tmp/bi/fullchain.crt --mspdir ${HOME}/tmp/bi/enrollment
-fabric-ca-client enroll -d -u https://administrator@bi:administrator-bi-password@10.250.250.10:7055 --tls.certfiles ${HOME}/tmp/bi/fullchain.crt --csr.names C=id,O=bi,ST=jakarta --mspdir ${HOME}/tmp/bi/enrollment-admin
-
-cp tmp/bi/enrollment-admin/signcerts/cert.pem organizations/bi/msp/admincerts
-
-cp tmp/bi/enrollment/cacerts/10-250-250-10-7055.pem organizations/bi/msp/cacerts/root-ca.pem
-cp tmp/bi/enrollment/intermediatecerts/10-250-250-10-7055.pem organizations/bi/msp/intermediatecerts/intermediate-ca.pem
-
-cp tmp/bi/tls/cacerts/10-250-250-10-7054.pem organizations/bi/msp/tlscacerts/root-ca.pem
-cp tmp/bi/tls/intermediatecerts/10-250-250-10-7054.pem organizations/bi/msp/tlsintermediatecerts/intermediate-ca.pem
-
-rm -rf tmp
+mkdir -p organizations/PeerOrganizations/dana
+mkdir -p organizations/PeerOrganizations/gopay
 ```
 
 get certificate GoPay. 
@@ -78,25 +44,7 @@ get certificate GoPay.
 ```shell
 sshpass -p "vagrant" ssh-copy-id -o StrictHostKeyChecking=no vagrant@10.250.251.10
 
-mkdir -p tmp/gopay/tls
-mkdir -p tmp/gopay/enrollment
-mkdir -p tmp/gopay/enrollment-admin
-
-scp vagrant@10.250.251.10:~/certificates/tls/intermediate/fullchain.crt tmp/gopay/
-
-fabric-ca-client getcainfo -d -u https://admin@gopay0:adminpasswd@10.250.251.10:7054 --tls.certfiles ${HOME}/tmp/gopay/fullchain.crt --mspdir ${HOME}/tmp/gopay/tls
-fabric-ca-client getcainfo -d -u https://admin@gopay0:adminpasswd@10.250.251.10:7055 --tls.certfiles ${HOME}/tmp/gopay/fullchain.crt --mspdir ${HOME}/tmp/gopay/enrollment
-fabric-ca-client enroll -d -u https://administrator@gopay:administrator-gopay-password@10.250.251.10:7055 --tls.certfiles ${HOME}/tmp/gopay/fullchain.crt --csr.names C=id,O=gopay,ST=jakarta --mspdir ${HOME}/tmp/gopay/enrollment-admin
-
-cp tmp/gopay/enrollment-admin/signcerts/cert.pem organizations/gopay/msp/admincerts
-
-cp tmp/gopay/enrollment/cacerts/10-250-251-10-7055.pem organizations/gopay/msp/cacerts/root-ca.pem
-cp tmp/gopay/enrollment/intermediatecerts/10-250-251-10-7055.pem organizations/gopay/msp/intermediatecerts/intermediate-ca.pem
-
-cp tmp/gopay/tls/cacerts/10-250-251-10-7054.pem organizations/gopay/msp/tlscacerts/root-ca.pem
-cp tmp/gopay/tls/intermediatecerts/10-250-251-10-7054.pem organizations/gopay/msp/tlsintermediatecerts/intermediate-ca.pem
-
-rm -rf tmp
+scp -r vagrant@10.250.251.10:~/organizations/PeerOrganizations/gopay/msp/ organizations/PeerOrganizations/gopay/msp/
 ```
 
 get certificate Dana. 
@@ -104,42 +52,85 @@ get certificate Dana.
 ```shell
 sshpass -p "vagrant" ssh-copy-id -o StrictHostKeyChecking=no vagrant@10.250.252.10
 
-mkdir -p tmp/dana/tls
-mkdir -p tmp/dana/enrollment
-mkdir -p tmp/dana/enrollment-admin
-
-scp vagrant@10.250.252.10:~/certificates/tls/intermediate/fullchain.crt tmp/dana/
-
-fabric-ca-client getcainfo -d -u https://admin@dana0:adminpasswd@10.250.252.10:7054 --tls.certfiles ${HOME}/tmp/dana/fullchain.crt --mspdir ${HOME}/tmp/dana/tls
-fabric-ca-client getcainfo -d -u https://admin@dana0:adminpasswd@10.250.252.10:7055 --tls.certfiles ${HOME}/tmp/dana/fullchain.crt --mspdir ${HOME}/tmp/dana/enrollment
-fabric-ca-client enroll -d -u https://administrator@dana:administrator-dana-password@10.250.252.10:7055 --tls.certfiles ${HOME}/tmp/dana/fullchain.crt --csr.names C=id,O=dana,ST=jakarta --mspdir ${HOME}/tmp/dana/enrollment-admin
-
-cp tmp/dana/enrollment-admin/signcerts/cert.pem organizations/dana/msp/admincerts
-
-cp tmp/dana/enrollment/cacerts/10-250-252-10-7055.pem organizations/dana/msp/cacerts/root-ca.pem
-cp tmp/dana/enrollment/intermediatecerts/10-250-252-10-7055.pem organizations/dana/msp/intermediatecerts/intermediate-ca.pem
-
-cp tmp/dana/tls/cacerts/10-250-252-10-7054.pem organizations/dana/msp/tlscacerts/root-ca.pem
-cp tmp/dana/tls/intermediatecerts/10-250-252-10-7054.pem organizations/dana/msp/tlsintermediatecerts/intermediate-ca.pem
-
-rm -rf tmp
+scp -r vagrant@10.250.252.10:~/organizations/PeerOrganizations/dana/msp/ organizations/PeerOrganizations/dana/msp/
 ```
 
+create directory to host TLS certificate for each orderer service
+```
+mkdir -p organizations/OrdererOrganizations/bi/orderers/orderer0/tls/signcerts/
+mkdir -p organizations/OrdererOrganizations/bi/orderers/orderer1/tls/signcerts/
+mkdir -p organizations/OrdererOrganizations/bi/orderers/orderer2/tls/signcerts/
+```
 We already create TLS certificate for each orderer service, it's should located in `~/certificates/orderer/tls/signcerts/cert.pem`
 ```shell
-scp vagrant@10.250.250.20:~/certificates/orderer/tls/signcerts/cert.pem organizations/bi/orderer/orderer0/tls/
-scp vagrant@10.250.250.21:~/certificates/orderer/tls/signcerts/cert.pem organizations/bi/orderer/orderer1/tls/
-scp vagrant@10.250.250.22:~/certificates/orderer/tls/signcerts/cert.pem organizations/bi/orderer/orderer2/tls/
+scp vagrant@10.250.250.20:/etc/hyperledger/orderer/organizations/OrdererOrganizations/bi/orderers/orderer0/tls/signcerts/cert.pem organizations/OrdererOrganizations/bi/orderers/orderer0/tls/signcerts/
+scp vagrant@10.250.250.21:/etc/hyperledger/orderer/organizations/OrdererOrganizations/bi/orderers/orderer1/tls/signcerts/cert.pem organizations/OrdererOrganizations/bi/orderers/orderer1/tls/signcerts/
+scp vagrant@10.250.250.22:/etc/hyperledger/orderer/organizations/OrdererOrganizations/bi/orderers/orderer2/tls/signcerts/cert.pem organizations/OrdererOrganizations/bi/orderers/orderer2/tls/signcerts/
+```
+
+let's check all of the certificate
+```
+tree organizations
+organizations
+├── OrdererOrganizations
+│   └── bi
+│       ├── msp
+│       │   ├── cacerts
+│       │   │   └── root-cert.pem
+│       │   ├── config.yaml
+│       │   ├── intermediatecerts
+│       │   │   └── intermediate-cert.pem
+│       │   ├── tlscacerts
+│       │   │   └── root-cert.pem
+│       │   └── tlsintermediatecerts
+│       │       └── intermediate-cert.pem
+│       ├── orderers
+│       │   ├── orderer0
+│       │   │   └── tls
+│       │   │       └── signcerts
+│       │   │           └── cert.pem
+│       │   ├── orderer1
+│       │   │   └── tls
+│       │   │       └── signcerts
+│       │   │           └── cert.pem
+│       │   └── orderer2
+│       │       └── tls
+│       │           └── signcerts
+│       │               └── cert.pem
+│       └── users
+└── PeerOrganizations
+    ├── dana
+    │   └── msp
+    │       ├── cacerts
+    │       │   └── root-cert.pem
+    │       ├── config.yaml
+    │       ├── intermediatecerts
+    │       │   └── intermediate-cert.pem
+    │       ├── tlscacerts
+    │       │   └── root-cert.pem
+    │       └── tlsintermediatecerts
+    │           └── intermediate-cert.pem
+    └── gopay
+        └── msp
+            ├── cacerts
+            │   └── root-cert.pem
+            ├── config.yaml
+            ├── intermediatecerts
+            │   └── intermediate-cert.pem
+            ├── tlscacerts
+            │   └── root-cert.pem
+            └── tlsintermediatecerts
+                └── intermediate-cert.pem
 ```
 
 create configuration
 ```shell
-cat <<EOF | tee organizations/configtx.yaml
+cat <<EOF | tee configtx.yaml
 Organizations:
   - &BankIndonesiaOrg
       Name: bi
       ID: bi
-      MSPDir: bi/msp
+      MSPDir: organizations/OrdererOrganizations/bi/msp
       Policies:
         Readers:
           Type: Signature
@@ -153,7 +144,7 @@ Organizations:
   - &GoPayOrg
       Name: gopay
       ID: gopay
-      MSPDir: gopay/msp
+      MSPDir: organizations/PeerOrganizations/gopay/msp
       Policies:
         Readers:
           Type: Signature
@@ -173,7 +164,7 @@ Organizations:
   - &DANAOrg
       Name: dana
       ID: dana
-      MSPDir: dana/msp
+      MSPDir: organizations/PeerOrganizations/dana/msp
       Policies:
         Readers:
           Type: Signature
@@ -225,16 +216,16 @@ Orderer: &QRISOrderer
     Consenters:
     - Host: 10.250.250.20
       Port: 7050
-      ClientTLSCert: bi/orderer/orderer0/tls/cert.pem
-      ServerTLSCert: bi/orderer/orderer0/tls/cert.pem
+      ClientTLSCert: organizations/OrdererOrganizations/bi/orderers/orderer0/tls/signcerts/cert.pem
+      ServerTLSCert: organizations/OrdererOrganizations/bi/orderers/orderer0/tls/signcerts/cert.pem
     - Host: 10.250.250.21
       Port: 7050
-      ClientTLSCert: bi/orderer/orderer1/tls/cert.pem
-      ServerTLSCert: bi/orderer/orderer1/tls/cert.pem
+      ClientTLSCert: organizations/OrdererOrganizations/bi/orderers/orderer1/tls/signcerts/cert.pem
+      ServerTLSCert: organizations/OrdererOrganizations/bi/orderers/orderer1/tls/signcerts/cert.pem
     - Host: 10.250.250.22
       Port: 7050
-      ClientTLSCert: bi/orderer/orderer2/tls/cert.pem
-      ServerTLSCert: bi/orderer/orderer2/tls/cert.pem
+      ClientTLSCert: organizations/OrdererOrganizations/bi/orderers/orderer2/tls/signcerts/cert.pem
+      ServerTLSCert: organizations/OrdererOrganizations/bi/orderers/orderer2/tls/signcerts/cert.pem
   Addresses:
     - 10.250.250.20:7050
     - 10.250.250.21:7050
@@ -291,64 +282,17 @@ Profiles:
 EOF
 ```
 
-setup NodeOU for each organizations
-```
-cat <<EOF | tee organizations/dana/msp/config.yaml
-NodeOUs:
- Enable: true
- ClientOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: client
- PeerOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: peer
- AdminOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: admin
- OrdererOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: orderer
-EOF
-
-cat <<EOF | tee organizations/gopay/msp/config.yaml
-NodeOUs:
- Enable: true
- ClientOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: client
- PeerOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: peer
- AdminOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: admin
- OrdererOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: orderer
-EOF
-
-cat <<EOF | tee organizations/bi/msp/config.yaml
-NodeOUs:
- Enable: true
- ClientOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: client
- PeerOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: peer
- AdminOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: admin
- OrdererOUIdentifier:
-   Certificate: intermediatecerts/intermediate-ca.pem
-   OrganizationalUnitIdentifier: orderer
-EOF
-```
-
 generate genesis block
 ```
-cd organizations
 configtxgen -profile QRIS -outputBlock genesis_block.pb -channelID qris
+
+2022-03-20 11:12:45.412 UTC 0001 INFO [common.tools.configtxgen] main -> Loading configuration
+2022-03-20 11:12:45.424 UTC 0002 INFO [common.tools.configtxgen.localconfig] completeInitialization -> orderer type: etcdraft
+2022-03-20 11:12:45.426 UTC 0003 INFO [common.tools.configtxgen.localconfig] completeInitialization -> Orderer.EtcdRaft.Options unset, setting to tick_interval:"500ms" election_tick:10 heartbeat_tick:1 max_inflight_blocks:5 snapshot_interval_size:16777216
+2022-03-20 11:12:45.426 UTC 0004 INFO [common.tools.configtxgen.localconfig] Load -> Loaded configuration: configtx.yaml
+2022-03-20 11:12:45.428 UTC 0005 INFO [common.tools.configtxgen] doOutputBlock -> Generating genesis block
+2022-03-20 11:12:45.428 UTC 0006 INFO [common.tools.configtxgen] doOutputBlock -> Creating application channel genesis block
+2022-03-20 11:12:45.429 UTC 0007 INFO [common.tools.configtxgen] doOutputBlock -> Writing genesis block
 ```
 
 copy this to each orderer service
@@ -359,78 +303,15 @@ scp genesis_block.pb vagrant@10.250.250.22:~/
 ```
 
 ### Orderer services
-in each orderer services, run this command to join orderer to the channel
-```
-osnadmin channel join --channelID qris  --config-block genesis_block.pb -o 127.0.0.1:12443
-```
+***notes**: BI organization handle Orderer nodes*
 
-you should see responses like this
-```json
-Status: 200
-{
-	"systemChannel": null,
-	"channels": [
-		{
-			"name": "qris",
-			"url": "/participation/v1/channels/qris"
-		}
-	]
-}
-```
+- [Bank Indonesia Orderer0](07-setup-channel/orderer/bi/orderer0.md)
+- [Bank Indonesia Orderer1](07-setup-channel/orderer/bi/orderer1.md)
+- [Bank Indonesia Orderer2](07-setup-channel/orderer/bi/orderer2.md)
 
 ### Peer Services
-fetch Orderer TLS intermediate certificate (BI TLS intermediate certificate) to each of the peer nodes
 
-*Remember! in real environment, each organization must collaborate each other to share their certificate*
-
-copy orderer CA to each peer nodes
-```
-ssh-keygen
-sshpass -p "vagrant" ssh-copy-id -o StrictHostKeyChecking=no vagrant@10.250.250.10
-
-sudo mkdir -p /etc/peer/orderer
-scp vagrant@10.250.250.10:~/organizations/bi/msp/tlsintermediatecerts/intermediate-ca.pem ~/
-sudo mv intermediate-ca.pem /etc/peer/orderer/
-```
-
-fetch the genesis.block from orderer
-```
-sudo su
-cd /etc/peer
-
-peer channel fetch newest genesis.block -c qris -o 10.250.250.20:7050 --tls --cafile /etc/peer/orderer/intermediate-ca.pem
-```
-
-join peers to the channel
-```
-#execute in gopay peers node only
-CORE_PEER_LOCALMSPID=gopay CORE_PEER_MSPCONFIGPATH=/etc/peer/users/admin peer channel join -b genesis.block -o 10.250.250.20:7050 --tls --cafile /etc/peer/orderer/intermediate-ca.pem
-
-#execute in dana peers node only
-CORE_PEER_LOCALMSPID=dana CORE_PEER_MSPCONFIGPATH=/etc/peer/users/admin peer channel join -b genesis.block -o 10.250.250.20:7050 --tls --cafile /etc/peer/orderer/intermediate-ca.pem
-```
-
-check peers connected to channels
-```
-#execute in gopay peers node only
-CORE_PEER_LOCALMSPID=gopay CORE_PEER_MSPCONFIGPATH=/etc/peer/users/admin peer channel list -o 10.250.250.20:7050 --tls --cafile /etc/peer/orderer/intermediate-ca.pem
-
-#execute in dana peers node only
-CORE_PEER_LOCALMSPID=dana CORE_PEER_MSPCONFIGPATH=/etc/peer/users/admin peer channel list -o 10.250.250.20:7050 --tls --cafile /etc/peer/orderer/intermediate-ca.pem
-
-2022-03-13 08:39:50.824 UTC 0001 INFO [channelCmd] InitCmdFactory -> Endorser and orderer connections initialized
-Channels peers has joined:
-qris
-```
-
-check qris channel information
-```
-#execute in gopay peers node only
-CORE_PEER_LOCALMSPID=gopay CORE_PEER_MSPCONFIGPATH=/etc/peer/users/admin peer channel getinfo -c qris -o 10.250.250.20:7050 --tls --cafile /etc/peer/orderer/intermediate-ca.pem
-
-#execute in dana peers node only
-CORE_PEER_LOCALMSPID=dana CORE_PEER_MSPCONFIGPATH=/etc/peer/users/admin peer channel getinfo -c qris -o 10.250.250.20:7050 --tls --cafile /etc/peer/orderer/intermediate-ca.pem
-
-2022-03-13 08:31:34.867 UTC 0001 INFO [channelCmd] InitCmdFactory -> Endorser and orderer connections initialized
-Blockchain info: {"height":1,"currentBlockHash":"vq3Xj0BdB3pInatCfIcoJTl8eznlPwdJAYfqDgJSgiA="}
-```
+- [DANA Peer0](07-setup-channel/peer/dana/peer0.md)
+- [DANA Peer1](07-setup-channel/peer/dana/peer1.md)
+- [GoPay Peer0](07-setup-channel/peer/gopay/peer0.md)
+- [GoPay Peer1](07-setup-channel/peer/gopay/peer1.md)

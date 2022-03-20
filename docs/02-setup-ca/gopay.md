@@ -110,6 +110,26 @@ sudo chown -R vagrant:vagrant organizations/PeerOrganizations/gopay/
 chmod -R 744 organizations/PeerOrganizations/gopay/
 ```
 
+setup NodeOU
+```
+cat <<EOF | tee organizations/PeerOrganizations/gopay/msp/config.yaml
+NodeOUs:
+ Enable: true
+ ClientOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: client
+ PeerOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: peer
+ AdminOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: admin
+ OrdererOUIdentifier:
+   Certificate: intermediatecerts/intermediate-cert.pem
+   OrganizationalUnitIdentifier: orderer
+EOF
+```
+
 If we check, we will have this certificates
 ```
 tree organizations/
@@ -119,6 +139,7 @@ organizations/
         └── msp
             ├── cacerts
             │   └── root-cert.pem
+            ├── config.yaml
             ├── intermediatecerts
             │   └── intermediate-cert.pem
             ├── tlscacerts

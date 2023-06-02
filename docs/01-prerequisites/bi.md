@@ -1,8 +1,8 @@
 # Prerequisites
-There several different prerequisites for different ledger subsystem.
+There are several different prerequisites depending on the ledger subsystem.
 
 # CA server
-ssh to the nodes
+ssh into the nodes
 ```shell
 vagrant ssh bi-ca-server-0
 ```
@@ -34,7 +34,8 @@ rm -rf config/
 rm -rf hyperledger-fabric-linux-amd64-2.4.3.tar.gz
 ```
 
-install Docker & docker-compose, this is used to run postgresql that is used by Fabric CA server
+Install Docker & Docker-compose, which are used to run PostgreSQL, required by the Fabric CA server.
+
 ```
 sudo apt-get install \
     ca-certificates \
@@ -71,7 +72,7 @@ vagrant ssh bi-orderer-1
 vagrant ssh bi-orderer-2
 ```
 
-Install Hyperledger Fabric CA binary, this is used to communicate with Fabric CA server that Bank Indonesia managed.
+Install the Hyperledger Fabric CA binary, which is used to communicate with the Fabric CA server managed by Bank Indonesia.
 ```shell
 wget https://github.com/hyperledger/fabric-ca/releases/download/v1.5.2/hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
 tar xzvf hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
@@ -81,7 +82,7 @@ rm -rf bin/
 rm -rf hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
 ```
 
-Install Hyperledger Fabric binary, this is used to run orderer service.
+Install the Hyperledger Fabric binary, which is used to run the orderer service.
 ```
 wget https://github.com/hyperledger/fabric/releases/download/v2.4.3/hyperledger-fabric-linux-amd64-2.4.3.tar.gz
 tar xzvf hyperledger-fabric-linux-amd64-2.4.3.tar.gz

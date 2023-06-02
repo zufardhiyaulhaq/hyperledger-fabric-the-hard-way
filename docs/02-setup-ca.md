@@ -1,5 +1,5 @@
 # Setup Root & Intermediate CA
-Setup Root and Intermediate CA for each organizations, we don't use single Root CA since it's different organization at all:
+Set up a Root and Intermediate CA for each organization. We don't use a single Root CA, as these are all distinct organizations:
 - [BI](02-setup-ca/bi.md)
 - [Dana](02-setup-ca/dana.md)
 - [GoPay](02-setup-ca/gopay.md)

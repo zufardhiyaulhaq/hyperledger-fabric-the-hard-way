@@ -5,13 +5,13 @@ First, we need to bring up the infrastructure. Clone this repository
 git clone https://github.com/zufardhiyaulhaq/hyperledger-fabric-the-hard-way.git
 ```
 
-Go to docs directory and start the VM
+Navigate to the docs directory and start the Virtual Machine (VM)
 ```shell
 cd hyperledger-fabric-the-hard-way/docs
 vagrant up
 ```
 
-You can see severals VM
+You can then check the status of various VMs
 ```shell
 vagrant status
 ==> vagrant: A new version of Vagrant is available: 2.2.19 (installed version: 2.2.9)!
@@ -35,7 +35,7 @@ above with their current state. For more information about a specific
 VM, run `vagrant status NAME`.
 ```
 
-To access the VM, you can just simply use `vagrant ssh`, for example
+To access a VM, you can simply use vagrant ssh. Here's an example:
 ```shell
 vagrant ssh payments-ca-server-0
 ```

@@ -1,20 +1,20 @@
 # Prerequisites
-There several different prerequisites for different ledger subsystem.
+Different ledger subsystems have several distinct prerequisites.
 
 # CA server
-ssh to the nodes
+ssh into the nodes
 ```shell
 vagrant ssh dana-ca-server-0
 ```
 
-Install step certificate binary, this is used to generate certificate authority on DANA organization.
+Install the Step Certificate binary, which is used to generate a Certificate Authority for the DANA organization.
 ```shell
 wget https://dl.step.sm/gh-release/cli/docs-cli-install/v0.18.2/step-cli_0.18.2_amd64.deb
 sudo dpkg -i step-cli_0.18.2_amd64.deb
 rm -rf step-cli_0.18.2_amd64.deb
 ```
 
-Install Hyperledger Fabric CA binary, this is used to run Fabric CA server that serve creation of certificate under DANA organization.
+Install the Hyperledger Fabric CA binary, used to run the Fabric CA server. This server manages the creation of certificates for the DANA organization.
 ```shell
 wget https://github.com/hyperledger/fabric-ca/releases/download/v1.5.2/hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
 tar xzvf hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
@@ -24,7 +24,7 @@ rm -rf bin/
 rm -rf hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
 ```
 
-install Docker & docker-compose, this is used to run postgresql that is used by Fabric CA server
+Install Docker & docker-compose. These are used to run PostgreSQL, which is utilized by the Fabric CA server
 ```
 sudo apt-get install \
     ca-certificates \
@@ -41,7 +41,8 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-
 sudo chmod +x /usr/local/bin/docker-compose
 ```
 
-For simplicity to distribute the TLS CA certificate later, we can simply add CA server public key to peer nodes that managed by DANA.
+To simplify the distribution of the TLS CA certificate later, we can add the CA server public key to peer nodes managed by DANA.
+
 ```shell
 ssh-keygen
 
@@ -51,14 +52,14 @@ sshpass -p "vagrant" ssh-copy-id -o StrictHostKeyChecking=no vagrant@10.250.252.
 ```
 
 # Peer
-for each peer nodes, do this following things
+For each peer node, execute the following steps:
 
 ```shell
 vagrant ssh dana-peer-0
 vagrant ssh dana-peer-1
 ```
 
-Install Hyperledger Fabric CA binary, this is used to communicate with Fabric CA server that DANA managed.
+Install the Hyperledger Fabric CA binary. This is used for communication with the Fabric CA server managed by DANA.
 ```shell
 wget https://github.com/hyperledger/fabric-ca/releases/download/v1.5.2/hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz
 tar xzvf hyperledger-fabric-ca-linux-amd64-1.5.2.tar.gz

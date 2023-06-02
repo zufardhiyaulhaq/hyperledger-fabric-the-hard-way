@@ -8,7 +8,7 @@ This tutorial walks you through setting up Hyperledger Fabric the hard way. Ther
 - Fabric 2.4.3
 
 ## Labs
-This lab required you to have understanding & installed system of Vagrant & Virtualbox
+This lab requires you to have an understanding of, and have installed, both Vagrant and Virtualbox.
 - [Provisioning Infrastructure](docs/00-infrastructure.md)
 - [Installing prerequisites tools](docs/01-prerequisites.md)
 - [Setup Certificate Authority](docs/02-setup-ca.md)
@@ -20,7 +20,7 @@ This lab required you to have understanding & installed system of Vagrant & Virt
 - [Setup & Testing Chaincode](docs/08-setup-chaincode.md)
 
 ## Architecture
-There are 3 organizations in this tutorial, all of this organizations will join channel called QRIS.
+There are three organizations in this tutorial, all of which will join a channel called 'QRIS'.
 - BI (Bank Indonesia), will host 3 Orderer services
 - GoPay, will host 2 peer services
 - DANA, will host 2 peer services
